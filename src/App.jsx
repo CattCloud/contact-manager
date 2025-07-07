@@ -1,21 +1,111 @@
 import Header from './components/Header'
 import Footer from './components/Footer'
-import ListContacts from './components/ListContact'
-import { contactosImportantes, contactosFavoritos, contactosRecientes } from './datos.js';
-
+import TipoContacts from './components/TipoContacts.jsx'
+import { Listacontactos } from './datos.js';
+import ListContacts from './components/ListContacs.jsx';
+import { useState } from "react";
+import ControlBar from './components/ControlBar.jsx';
 
 export default function App() {
+  const [estadoContactos, setContacto] = useState(
+    [
+      {
+        id: 1,
+        nombre: "Valeria Ramírez",
+        correo: "valeria.ramirez@email.com",
+        telefono: "987-654-321",
+        favorite: true,
+      },
+      {
+        id: 2,
+        nombre: "Daniel Torres",
+        correo: "daniel.torres@email.com",
+        telefono: "912-345-678",
+        favorite: false,
+      },
+      {
+        id: 3,
+        nombre: "Sofía Rivas",
+        correo: "sofia.rivas@email.com",
+        telefono: "955-321-123",
+        favorite: true,
+      },
+      {
+        id: 4,
+        nombre: "Andrés León",
+        correo: "andres.leon@email.com",
+        telefono: "944-888-777",
+        favorite: false,
+      },
+      {
+        id: 5,
+        nombre: "Lucía Fernández",
+        correo: "lucia.fernandez@email.com",
+        telefono: "933-222-111",
+        favorite: true,
+      },
+      {
+        id: 6,
+        nombre: "Mateo Castillo",
+        correo: "mateo.castillo@email.com",
+        telefono: "966-777-333",
+        favorite: false,
+      }
+    ]
+  );
+
+  const [estadoFiltro,setFiltro ] = useState("todos");
+
+  console.log(estadoFiltro);
+
+
+  const contactosFiltrados =
+  estadoFiltro === "favoritos"
+    ? estadoContactos.filter((c) => c.favorite)
+    : estadoContactos;
+  
+  const cantidadFavoritos = estadoContactos.filter((c) => c.favorite).length;
+  const cantidadContactos =   estadoContactos.length;
+
+
+  function toggleFavorite(id) {
+  setContacto((estadoAnterior) => {
+    // Creamos una nueva lista de contactos
+    const nuevaLista = estadoAnterior.map((contacto) => {
+      // Si el ID coincide, actualizamos el favorito
+      if (contacto.id === id) {
+        return {
+          ...contacto,
+          favorite: !contacto.favorite, // Cambiamos true ↔ false
+        };
+      } else {
+        return contacto;
+      }
+    });
+
+    return nuevaLista;
+  });
+  }
+
+  function filterContactos(valorFiltro){
+    setFiltro(valorFiltro);
+  }
+
+
   return (
-    <div className='space-y-4'>
+    <div className='space-y-2'>
       <Header />
-      <main>
-        <div className="px-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <ListContacts titulo="Importantes" color="red" contactos={contactosImportantes} />
-          <ListContacts titulo="Favoritos" color="green" contactos={contactosFavoritos} />
-          <ListContacts titulo="Recientes" color="blue" contactos={contactosRecientes} />
+      <main className='space-y-3 min-h-[78vh] '>
+        <div className='px-4 flex justify-between items-center'>
+          <ControlBar onAction={filterContactos} filtroActivo={estadoFiltro}/>
+          <p className='text-text-secondary'>{cantidadFavoritos} de {cantidadContactos} contactos son favoritos</p>
         </div>
+        <ListContacts contactos={contactosFiltrados} onFavorite={toggleFavorite} />
       </main>
       <Footer />
     </div>
   )
 }
+
+
+

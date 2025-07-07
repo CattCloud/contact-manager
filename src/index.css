@@ -7,13 +7,15 @@
 
 @theme{
   --color-bg-primary:#ffffff;
-  --color-bg-secondary:#f6f8fa;
+  --color-bg-secondary:#e8eaee;
   --color-text-primary:#111827;
-  --color-text-secondary:#a0a2a6;
+  --color-text-secondary:#8b8a8d;
   --color-secondary-green: #22c55e;   /* Verde de acento (éxito, confirmar) */
   --color-secondary-red: #ef4444;     /* Rojo de alerta o error */
   --color-secondary-blue: #3b82f6;   
+  --color-secondary-yellow: #eab308;
   --color-secondary-neutral: #c3c7ca;   
-  --color-border:#f1f3f2; /* Azul para botones, enlaces o info */
+  --color-border:#e8eaee;
+  --color-hover:#d1d5db;
  /* Azul para botones, enlaces o info */
 }

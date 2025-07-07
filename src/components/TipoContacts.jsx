@@ -2,7 +2,7 @@ import ListHeader from "./ListHeader";
 import ContactCard from "./ContactCard";
 
 
-function ListContacts({ titulo, color, contactos }) {
+function TipoContacts({ titulo, color, contactos }) {
     return (
         <div className="bg-bg-secondary p-2 rounded-md space-y-4 w-content">
             <ListHeader titulo={titulo} color={color} />
@@ -21,4 +21,4 @@ function ListContacts({ titulo, color, contactos }) {
     );
 }
 
-export default ListContacts;
+export default TipoContacts;

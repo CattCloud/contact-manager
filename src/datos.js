@@ -1,3 +1,8 @@
+const Listacontactos = [
+  
+];
+
+
 const contactosImportantes = [
   {
     nombre: "Valeria Ramírez",
@@ -52,4 +57,4 @@ const contactosRecientes = [
   },
 ];
 
-export {contactosFavoritos,contactosRecientes,contactosImportantes};
+export {contactosFavoritos,contactosRecientes,contactosImportantes,Listacontactos};
