@@ -1,12 +1,52 @@
-# React + Vite
+## Descripción del Proyecto
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Contact Manager** es una aplicación desarrollada en React que permite gestionar contactos personales de forma interactiva, con enfoque en experiencia de usuario y estructura de componentes. El objetivo principal es practicar y afianzar conceptos fundamentales como:
 
-Currently, two official plugins are available:
+- Manejo de estado dinámico con `useState`
+- Comunicación entre componentes a través de `props`
+- Renderizado condicional y reactivo
+- Buenas prácticas en el diseño de UI (accesibilidad, jerarquía visual y estados interactivos)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+El proyecto simula un entorno real de administración de contactos, con funcionalidades como:
+- Marcar o desmarcar contactos como favoritos
+- Filtrar la vista entre todos los contactos y solo favoritos
+- Mostrar mensajes útiles cuando no hay resultados
+- Visualizar el total de contactos destacados
 
-## Expanding the ESLint configuration
+## Funcionalidades Implementadas
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Esta versión del Contact Manager incluye diversas funcionalidades diseñadas para reforzar el manejo de `state`, `props` y eventos en React:
+
+### Filtro de Contactos
+
+- Implementación de una barra de control (`ControlBar`) que permite al usuario alternar entre:
+  - **Todos los contactos**
+  - **Solo favoritos**
+- El filtro es manejado con `useState`, y la vista se actualiza automáticamente sin duplicar datos.
+- El botón activo se destaca visualmente según el filtro seleccionado.
+
+### Tarjetas de Contacto (`ContactCard`)
+
+- Cada contacto se renderiza como una tarjeta con:
+  - Nombre
+  - Teléfono
+  - Correo
+  - Icono de favorito (`⭐` / `☆`)
+- Las tarjetas reciben los datos y funciones a través de `props`.
+
+### Botón de Favorito
+
+- Cada tarjeta permite alternar el estado de favorito con un solo clic.
+- El evento actualiza el estado principal (`estadoContactos`) usando una función pura con `.map()`.
+
+### Mensaje “No hay favoritos”
+
+- Si el usuario selecciona la vista de “Favoritos” y no existen contactos marcados, se muestra un mensaje amigable con ícono SVG.
+- Esto se maneja mediante una condición ternaria y renderizado condicional reactivo.
+
+### Contador de Favoritos
+
+- Se muestra un contador al lado de los botones:  
+  `X de Y contactos son favoritos`
+- El número se recalcula automáticamente al agregar o quitar favoritos.
+
