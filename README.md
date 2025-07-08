@@ -50,3 +50,21 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
   `X de Y contactos son favoritos`
 - El número se recalcula automáticamente al agregar o quitar favoritos.
 
+
+### Comunicación Bidireccional con Funciones como Props
+
+- Se implementó la técnica de **pasar funciones como props** desde el componente padre (`App`) a los hijos (`ContactCard`, `ModalContact`, etc.) para habilitar la **comunicación inversa** (del hijo al padre).
+- Las tarjetas y el modal no modifican el estado por sí mismos: en su lugar, disparan callbacks como `onFavorite`, `onClose`, `onSiguientContacto`, etc., que son definidos en el padre y actualizan el estado centralizado.
+
+### Modal de Detalles del Contacto
+
+- Al hacer clic sobre una tarjeta, se abre un **modal con el detalle completo del contacto**.
+- El modal se controla desde el componente padre mediante un estado booleano (`isOpen`) y un estado con el contacto seleccionado.
+- Se utiliza renderizado condicional para evitar errores al cargar datos vacíos.
+
+### Navegación Circular de Contactos
+
+- Desde el modal, se puede **navegar al contacto anterior o siguiente** usando botones dedicados.
+- La navegación es **circular**: si se está en el último contacto y se presiona “Siguiente”, vuelve al primero.
+- Esta funcionalidad también respeta el filtro activo (`todos` o `favoritos`) y solo navega entre la lista visible.
+
