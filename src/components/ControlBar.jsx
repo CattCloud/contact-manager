@@ -3,7 +3,6 @@ function ControlBar({ onAction,filtroActivo }) {
     const btn_disabled = "text-text-secondary bg-bg-secondary px-3 py-2 hover:bg-hover";
 
     return (
-       
         <div className="rounded-md border border-border w-fit">
             <button className={filtroActivo==="todos"?btn_enabled:btn_disabled} onClick={() => onAction("todos")}>
                 Todos

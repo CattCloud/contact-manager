@@ -5,8 +5,11 @@ import { Listacontactos } from './datos.js';
 import ListContacts from './components/ListContacs.jsx';
 import { useState } from "react";
 import ControlBar from './components/ControlBar.jsx';
+import BotonAllFavorite from './components/allFavorite.jsx';
+
 
 export default function App() {
+
   const [estadoContactos, setContacto] = useState(
     [
       {
@@ -54,40 +57,52 @@ export default function App() {
     ]
   );
 
-  const [estadoFiltro,setFiltro ] = useState("todos");
+  const [estadoFiltro, setFiltro] = useState("todos");
 
   console.log(estadoFiltro);
 
-
   const contactosFiltrados =
-  estadoFiltro === "favoritos"
-    ? estadoContactos.filter((c) => c.favorite)
-    : estadoContactos;
-  
+    estadoFiltro === "favoritos"
+      ? estadoContactos.filter((c) => c.favorite)
+      : estadoContactos;
+
   const cantidadFavoritos = estadoContactos.filter((c) => c.favorite).length;
-  const cantidadContactos =   estadoContactos.length;
+  const cantidadContactos = estadoContactos.length;
 
 
   function toggleFavorite(id) {
-  setContacto((estadoAnterior) => {
-    // Creamos una nueva lista de contactos
-    const nuevaLista = estadoAnterior.map((contacto) => {
-      // Si el ID coincide, actualizamos el favorito
-      if (contacto.id === id) {
-        return {
-          ...contacto,
-          favorite: !contacto.favorite, // Cambiamos true ↔ false
-        };
-      } else {
-        return contacto;
-      }
-    });
+    setContacto((estadoAnterior) => {
+      // Creamos una nueva lista de contactos
+      const nuevaLista = estadoAnterior.map((contacto) => {
+        // Si el ID coincide, actualizamos el favorito
+        if (contacto.id === id) {
+          return {
+            ...contacto,
+            favorite: !contacto.favorite, // Cambiamos true ↔ false
+          };
+        } else {
+          return contacto;
+        }
+      });
 
-    return nuevaLista;
-  });
+      return nuevaLista;
+    });
   }
 
-  function filterContactos(valorFiltro){
+    function todosFavoritos() {
+    setContacto((estadoAnterior) => {
+      // Creamos una nueva lista de contactos
+      const nuevaLista = estadoAnterior.map((contacto) => {
+        return {
+          ...contacto,
+          favorite: true, // Cambiamos true ↔ false
+        }
+      });
+      return nuevaLista;
+    });
+  }
+
+  function filterContactos(valorFiltro) {
     setFiltro(valorFiltro);
   }
 
@@ -97,7 +112,10 @@ export default function App() {
       <Header />
       <main className='space-y-3 min-h-[78vh] '>
         <div className='px-4 flex justify-between items-center'>
-          <ControlBar onAction={filterContactos} filtroActivo={estadoFiltro}/>
+          <div className='flex gap-2 items-center'>
+          <ControlBar onAction={filterContactos} filtroActivo={estadoFiltro} />
+          <BotonAllFavorite onAction={todosFavoritos}/>
+          </div>
           <p className='text-text-secondary'>{cantidadFavoritos} de {cantidadContactos} contactos son favoritos</p>
         </div>
         <ListContacts contactos={contactosFiltrados} onFavorite={toggleFavorite} />
