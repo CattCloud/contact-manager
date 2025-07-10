@@ -16,6 +16,10 @@
   --color-secondary-yellow: #eab308;
   --color-secondary-neutral: #c3c7ca;   
   --color-border:#e8eaee;
+  --color-border-form:#d3d3d3;
+  --color-hover-input:#a3a7aa;
   --color-hover:#d1d5db;
+  --color-text-label:#404040;
+  
  /* Azul para botones, enlaces o info */
 }
