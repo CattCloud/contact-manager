@@ -102,7 +102,7 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 ## 📌 Cómo ejecutar
 
 ```bash
-git clone [https://github.com/tu-usuario/contact-manager.git](https://github.com/CattCloud/contact-manager)
+git clone https://github.com/CattCloud/contact-manager
 cd contact-manager
 npm install
 npm run dev
