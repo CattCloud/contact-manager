@@ -1,7 +1,7 @@
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ListContacts from './components/ListContacs.jsx';
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import ControlBar from './components/ControlBar.jsx';
 import BotonAllFavorite from './components/allFavorite.jsx';
 import ModalView from './components/ModalContact.jsx';
@@ -9,11 +9,13 @@ import BotonAddContacto from './components/addContact.jsx';
 import ContactoDetalle from './components/ContactoDetalle.jsx';
 import { notyf } from './utils/notificacion.jsx';
 import SearchContactInput from './components/SearchContact.jsx';
+import { managerls } from './utils/localStorageManager.js';
+import BotonDeleteAll from './components/allDelete.jsx';
 
 export default function App() {
 
   const [estadoContactos, setContacto] = useState(
-    window.managerls.obtener()
+    managerls.obtener()
   );
 
   const [estadoModal, setModalEstado] = useState(false)
@@ -45,17 +47,17 @@ export default function App() {
         c.relacion?.toLowerCase().includes(textoBuscado)
       );
     });
-  
+
   useEffect(() => {
-  if (contactosFiltrados.length) {
-    setContactoElegido((prev) => {
-      const sigueVisible = contactosFiltrados.some(c => c.id === prev?.id);
-      return sigueVisible ? prev : contactosFiltrados[0];
-    });
-  } else {
-    setContactoElegido(null);
-  }
-}, [estadoFiltro, searchEstado, estadoContactos]);
+    if (contactosFiltrados.length) {
+      setContactoElegido((prev) => {
+        const sigueVisible = contactosFiltrados.some(c => c.id === prev?.id);
+        return sigueVisible ? prev : contactosFiltrados[0];
+      });
+    } else {
+      setContactoElegido(null);
+    }
+  }, [estadoFiltro, searchEstado, estadoContactos]);
 
 
   const cantidadFavoritos = estadoContactos.filter((c) => c.favorite).length;
@@ -77,7 +79,7 @@ export default function App() {
           return contacto;
         }
       });
-      window.managerls.guardar(nuevaLista);
+      managerls.guardar(nuevaLista);
       return nuevaLista;
     });
   }
@@ -160,7 +162,7 @@ export default function App() {
       const nuevoEstadoContacto = [...estadoContactos, contactoListo];
       setContacto(nuevoEstadoContacto);
       cerrarModal();
-      window.managerls.guardar(nuevoEstadoContacto);
+      managerls.guardar(nuevoEstadoContacto);
       notyf.success("Contacto registrado correctamente");
       console.log(estadoContactos.length);
       setContactoElegido(nuevoEstadoContacto[nuevoEstadoContacto.length - 1]);
@@ -222,11 +224,31 @@ export default function App() {
         c.id === contacto.id ? contacto : c
       );
       setContacto(nuevoEstado);
-      window.managerls.guardar(nuevoEstado);
+      managerls.guardar(nuevoEstado);
       cerrarModal();
       setContactoElegido(contacto);
       notyf.success("Contacto editado correctamente");
     }
+  }
+
+  function manejadorEliminarContacto(id) {
+    const nuevoEstado = estadoContactos.filter(c => c.id !== id);
+    setContacto(nuevoEstado);
+    managerls.guardar(nuevoEstado);
+    notyf.success("Contacto eliminado correctamente");
+  }
+
+  function eliminarAllContacts() {
+    if (estadoContactos.length) {
+      setContacto([])
+      managerls.guardar([]);
+      notyf.success("Contactos eliminados correctamente");
+    }
+    else {
+      notyf.error("No hay contactos que eliminar");
+
+    }
+
   }
 
 
@@ -237,12 +259,13 @@ export default function App() {
 
       <main className='grid md:grid-cols-[73%_25%] grid-cols-1 gap-2 min-h-[82vh]'>
         <div className='space-y-3'>
-          <div className='pl-4 pr-4 md:pr-0 flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row '>
+          <div className='ml-4 mr-4 md:pr-0 flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row border-b-2 border-border pb-2'>
             <div className='flex gap-1 items-center justify-between'>
               <ControlBar onAction={filterContactos} filtroActivo={estadoFiltro} cantidadFavoritos={cantidadFavoritos} cantidadContactos={cantidadContactos} />
               <div className='flex gap-1'>
                 <BotonAllFavorite onAction={todosFavoritos} />
                 <BotonAddContacto onAction={abrirModalCrear} />
+                <BotonDeleteAll onAction={eliminarAllContacts}/>
               </div>
             </div>
             <SearchContactInput valorSearch={searchEstado} onSearch={manejadorSearch} />
@@ -255,6 +278,7 @@ export default function App() {
             onSeleccionarContacto={seleccionarContacto}
             contactoElegido={contactoElegido}
             onEditarContacto={abrirModalEdicion}
+            onEliminarContacto={manejadorEliminarContacto}
           />
         </div>
         <ContactoDetalle contacto={contactoElegido} onToggleFavorito={toggleFavorite} onAnteriorContacto={anteriorContacto} onSiguientContacto={siguienteContacto} />

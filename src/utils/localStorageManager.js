@@ -87,7 +87,7 @@ function localStorageManager() {
     }
 };
 
-const manager = localStorageManager();
-window.managerls = manager;
+export const managerls = localStorageManager();
+//managerls = manager;
 
 //localStorage.clear();
