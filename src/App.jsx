@@ -255,8 +255,6 @@ export default function App() {
   return (
     <div className='space-y-2'>
       <Header />
-
-
       <main className='grid md:grid-cols-[73%_25%] grid-cols-1 gap-2 min-h-[82vh]'>
         <div className='space-y-3'>
           <div className='ml-4 mr-4 md:pr-0 flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row border-b-2 border-border pb-2'>
