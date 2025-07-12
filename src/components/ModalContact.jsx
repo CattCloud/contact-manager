@@ -1,13 +1,12 @@
 import ContactForm from "./ContactForm";
 
-function ModalView({ title, isOpen, onClose , onAddContact}) {
+function ModalView({ title, isOpen, onClose ,contactoActual, modo, onAddContact}) {
     //“Si el modal no está abierto o no hay un contacto seleccionado, no renderices nada”.
     if (!isOpen) return null;
 
     function closeModal() {
         onClose();
     }
-
     return (
         <div className={`fixed inset-0 bg-black/50 z-40 flex items-center justify-center ${!isOpen ? 'hidden' : ''}`}>
             <div className="bg-white p-6 rounded-md shadow-lg w-8/10 z-50 relative space-y-4">
@@ -22,7 +21,7 @@ function ModalView({ title, isOpen, onClose , onAddContact}) {
                     </button>
                 </div>
                 <div>
-                <ContactForm onRegistrarContacto={onAddContact}/>
+                <ContactForm onRegistrarContacto={onAddContact} modoForm={modo} contactoActual={contactoActual} />
                 </div>
             </div>
         </div>

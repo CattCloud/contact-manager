@@ -10,16 +10,22 @@
   --color-bg-secondary:#e8eaee;
   --color-text-primary:#111827;
   --color-text-secondary:#8b8a8d;
-  --color-secondary-green: #22c55e;   /* Verde de acento (éxito, confirmar) */
+  --color-secondary-green: #22c55e; 
+  --color-secondary-orange:  #EF8C24; 
   --color-secondary-red: #ef4444;     /* Rojo de alerta o error */
   --color-secondary-blue: #3b82f6;   
-  --color-secondary-yellow: #eab308;
+  --color-secondary-yellow: #EBB207;
+  --color-secondary-purple: #CE67F0;
   --color-secondary-neutral: #a7acb0;   
   --color-border:#e8eaee;
   --color-border-form:#d3d3d3;
   --color-hover-input:#a3a7aa;
   --color-hover:#d1d5db;
   --color-text-label:#404040;
+  --color-btn:#5FE436;
+  --color-icon-btn:#6791A5;
+  --color-icon-btn-hover:#557889;
+
   
  /* Azul para botones, enlaces o info */
 }

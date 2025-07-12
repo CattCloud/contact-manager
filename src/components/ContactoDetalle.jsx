@@ -1,4 +1,5 @@
 import IconFavorite from "./IconFavorite";
+import BadgeRelacion from "./BadgeRelacion";
 
 function ContactoDetalle({ contacto, onToggleFavorito, onAnteriorContacto, onSiguientContacto }) {
     const mensajeEmpty = <div className="text-text-secondary flex items-center justify-center flex-col h-full">
@@ -24,7 +25,7 @@ function ContactoDetalle({ contacto, onToggleFavorito, onAnteriorContacto, onSig
                             {/* Nombre y relación */}
                             <div className="flex flex-col items-center">
                                 <h2 className="text-lg font-bold text-center">{contacto.nombre}</h2>
-                                <p className="text-sm text-text-label">{contacto.relacion}</p>
+                                <BadgeRelacion tipoRelacion={contacto.relacion}/>
                             </div>
                         </div>
                         <div className="grow flex flex-col justify-between py-4">

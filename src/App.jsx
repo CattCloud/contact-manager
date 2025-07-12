@@ -1,7 +1,7 @@
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ListContacts from './components/ListContacs.jsx';
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import ControlBar from './components/ControlBar.jsx';
 import BotonAllFavorite from './components/allFavorite.jsx';
 import ModalView from './components/ModalContact.jsx';
@@ -13,17 +13,20 @@ import SearchContactInput from './components/SearchContact.jsx';
 export default function App() {
 
   const [estadoContactos, setContacto] = useState(
-    []
+    window.managerls.obtener()
   );
 
   const [estadoModal, setModalEstado] = useState(false)
 
   const [estadoFiltro, setFiltro] = useState("todos");
 
-  const [contactoElegido, setContactoElegido] = useState(null);
+  const [contactoElegido, setContactoElegido] = useState(estadoContactos.length ? estadoContactos[0] : null);
 
   const [searchEstado, setSearch] = useState("");
 
+  const [modoModal, setModoModal] = useState("crear");
+
+  const [contactoAEditar, setContactoAEditar] = useState(null);
 
   const textoBuscado = searchEstado.trim().toLowerCase();
 
@@ -35,7 +38,6 @@ export default function App() {
     .filter((c) => {
       // Si no hay búsqueda, mostrar todos
       if (!textoBuscado) return true;
-
       // Buscar por nombre, teléfono, relación
       return (
         c.nombre.toLowerCase().includes(textoBuscado) ||
@@ -43,6 +45,18 @@ export default function App() {
         c.relacion?.toLowerCase().includes(textoBuscado)
       );
     });
+  
+  useEffect(() => {
+  if (contactosFiltrados.length) {
+    setContactoElegido((prev) => {
+      const sigueVisible = contactosFiltrados.some(c => c.id === prev?.id);
+      return sigueVisible ? prev : contactosFiltrados[0];
+    });
+  } else {
+    setContactoElegido(null);
+  }
+}, [estadoFiltro, searchEstado, estadoContactos]);
+
 
   const cantidadFavoritos = estadoContactos.filter((c) => c.favorite).length;
   const cantidadContactos = estadoContactos.length;
@@ -63,6 +77,7 @@ export default function App() {
           return contacto;
         }
       });
+      window.managerls.guardar(nuevaLista);
       return nuevaLista;
     });
   }
@@ -96,7 +111,9 @@ export default function App() {
     setFiltro(valorFiltro);
   }
 
-  function abrirModal() {
+  function abrirModalCrear() {
+    setContactoAEditar(null);
+    setModoModal("crear");
     setModalEstado(true);
   }
 
@@ -104,39 +121,50 @@ export default function App() {
     setModalEstado(false);
   }
 
-  function manejadorNuevoContacto(nuevoContacto) {
-    const { nombre, telefono } = nuevoContacto;
+  function validarDuplicado(contacto) {
+    const { id, nombre, telefono } = contacto;
     const nombreNormalizado = nombre.trim().toLowerCase();
     const telefonoLimpio = telefono.replace(/\D/g, "");
-
     // Validar duplicado por nombre
     const nombreDuplicado = estadoContactos.some(
-      (c) => c.nombre.trim().toLowerCase() === nombreNormalizado
+      (c) =>
+        c.id !== id && // 👈 excluye el mismo contacto
+        c.nombre.trim().toLowerCase() === nombreNormalizado
     );
     if (nombreDuplicado) {
       notyf.error("Ya existe un contacto con ese nombre");
-      return;
+      return false;
     }
     // Validar duplicado por teléfono
     const telefonoDuplicado = estadoContactos.some(
-      (c) => c.telefono.replace(/\D/g, "") === telefonoLimpio
+      (c) =>
+        c.id !== id && // 👈 excluye el mismo contacto
+        c.telefono.replace(/\D/g, "") === telefonoLimpio
     );
     if (telefonoDuplicado) {
       notyf.error("Ya existe un contacto con ese número de teléfono");
-      return;
+      return false;
     }
-    // Si pasa todo, se crea el contacto
-    const contactoListo = {
-      id: estadoContactos.length + 1,
-      ...nuevoContacto,
-      favorite: false,
-    };
-    const nuevoEstadoContacto = [...estadoContactos, contactoListo];
-    setContacto(nuevoEstadoContacto);
-    cerrarModal();
-    notyf.success("Contacto registrado correctamente");
-    console.log(estadoContactos.length);
-    setContactoElegido(nuevoEstadoContacto[nuevoEstadoContacto.length - 1]);
+    return true;
+  }
+
+
+  function manejadorNuevoContacto(nuevoContacto) {
+    if (validarDuplicado(nuevoContacto)) {
+      // Si pasa todo, se crea el contacto
+      const contactoListo = {
+        id: estadoContactos.length + 1,
+        ...nuevoContacto,
+        favorite: false,
+      };
+      const nuevoEstadoContacto = [...estadoContactos, contactoListo];
+      setContacto(nuevoEstadoContacto);
+      cerrarModal();
+      window.managerls.guardar(nuevoEstadoContacto);
+      notyf.success("Contacto registrado correctamente");
+      console.log(estadoContactos.length);
+      setContactoElegido(nuevoEstadoContacto[nuevoEstadoContacto.length - 1]);
+    }
   }
 
 
@@ -168,6 +196,7 @@ export default function App() {
   function manejadorSearch(e) {
     const value_search = e.target.value;
     setSearch(value_search);
+    //setContactoElegido(contacto);
 
   }
 
@@ -178,19 +207,42 @@ export default function App() {
     setContactoElegido(contacto);
   }
 
+
+  function abrirModalEdicion(id) {
+    const contactoAEditar = estadoContactos.find(c => c.id === id);
+    setContactoAEditar(contactoAEditar);
+    setModoModal("editar");
+    setModalEstado(true);
+  }
+
+
+  function manejadorEditarContacto(contacto) {
+    if (validarDuplicado(contacto)) {
+      const nuevoEstado = estadoContactos.map((c) =>
+        c.id === contacto.id ? contacto : c
+      );
+      setContacto(nuevoEstado);
+      window.managerls.guardar(nuevoEstado);
+      cerrarModal();
+      setContactoElegido(contacto);
+      notyf.success("Contacto editado correctamente");
+    }
+  }
+
+
   return (
     <div className='space-y-2'>
-      <Header cantidadFavoritos={cantidadFavoritos} cantidadContactos={cantidadContactos} />
+      <Header />
 
 
       <main className='grid md:grid-cols-[73%_25%] grid-cols-1 gap-2 min-h-[82vh]'>
         <div className='space-y-3'>
           <div className='pl-4 pr-4 md:pr-0 flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row '>
             <div className='flex gap-1 items-center justify-between'>
-              <ControlBar onAction={filterContactos} filtroActivo={estadoFiltro} />
+              <ControlBar onAction={filterContactos} filtroActivo={estadoFiltro} cantidadFavoritos={cantidadFavoritos} cantidadContactos={cantidadContactos} />
               <div className='flex gap-1'>
                 <BotonAllFavorite onAction={todosFavoritos} />
-                <BotonAddContacto onAction={abrirModal} />
+                <BotonAddContacto onAction={abrirModalCrear} />
               </div>
             </div>
             <SearchContactInput valorSearch={searchEstado} onSearch={manejadorSearch} />
@@ -201,10 +253,19 @@ export default function App() {
             onFavorite={toggleFavorite}
             mensajeIsEmpty={mensajeNoContactos}
             onSeleccionarContacto={seleccionarContacto}
+            contactoElegido={contactoElegido}
+            onEditarContacto={abrirModalEdicion}
           />
         </div>
         <ContactoDetalle contacto={contactoElegido} onToggleFavorito={toggleFavorite} onAnteriorContacto={anteriorContacto} onSiguientContacto={siguienteContacto} />
-        <ModalView title="Nuevo Contacto" isOpen={estadoModal} onClose={cerrarModal} onAddContact={manejadorNuevoContacto} />
+        <ModalView
+          title={modoModal === "editar" ? "Editar Contacto" : "Nuevo Contacto"}
+          isOpen={estadoModal}
+          onClose={cerrarModal}
+          contactoActual={contactoAEditar}
+          modo={modoModal}
+          onAddContact={modoModal === "editar" ? manejadorEditarContacto : manejadorNuevoContacto}
+        />
       </main>
       <Footer />
     </div>

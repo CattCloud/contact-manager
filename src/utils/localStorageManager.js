@@ -1,0 +1,93 @@
+import { notyf } from "./notificacion";
+
+const STORAGE_KEY = "contactos_app";
+
+function localStorageManager() {
+    function guardar(contactos) {
+        try {
+            const data = JSON.stringify(contactos);
+            localStorage.setItem(STORAGE_KEY, data);
+        } catch (error) {
+            notyf.error("Error al guardar en localStorage:", error);
+        }
+    }
+
+    function obtener() {
+        try {
+            const data = localStorage.getItem(STORAGE_KEY);
+            console.log("Contactos cargados correctamente");
+            return data ? JSON.parse(data) : [];
+        } catch (error) {
+            notyf.error("Error al leer desde localStorage:", error);
+            return [];
+        }
+    }
+
+    function limpiar() {
+        localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function init() {
+        const data_init = [
+            {
+                id: 1,
+                nombre: "Lucía Márquez",
+                telefono: "913245678",
+                relacion: "Familia",
+                correo: "lucia.marquez@example.com",
+                direccion: "",
+                favorite: true
+            },
+            {
+                id: 2,
+                nombre: "Jorge Torres",
+                telefono: "945678123",
+                relacion: "Trabajo",
+                correo: "jorge.torres@empresa.com",
+                direccion: "Calle Empresarial 456, San Isidro",
+                favorite: false
+            },
+            {
+                id: 3,
+                nombre: "Xiomara Verde",
+                telefono: "987654321",
+                relacion: "Amistad",
+                correo: "xiomara.v@gmail.com",
+                favorite: true
+            },
+            {
+                id: 4,
+                nombre: "Carlos Rivas",
+                telefono: "912998877",
+                relacion: "Personal",
+                correo: "",
+                direccion: "",
+                favorite: false
+            },
+            {
+                id: 5,
+                nombre: "Valentina López",
+                telefono: "916112233",
+                relacion: "Amistad",
+                direccion: "Jr. Amor y Paz 678, Surco",
+                favorite: false
+            }
+            
+        ];
+        const yaExiste = localStorage.getItem(STORAGE_KEY);
+        if (!yaExiste) {
+            guardar(data_init);
+        }
+    }
+    init();
+    return {
+        guardar,
+        obtener,
+        limpiar
+    }
+};
+
+const manager = localStorageManager();
+window.managerls = manager;
+
+//localStorage.clear();

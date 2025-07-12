@@ -1,18 +1,22 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { notyf } from "../utils/notificacion";
 
 
-function ContactForm({ onRegistrarContacto }) {
-    const [formData, setFormData] = useState({
-        nombre: "",
-        telefono: "",
-        correo: "",
-        relacion: "",
-        direccion: "",
-    });
+function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual = null }) {
+    const [formData, setFormData] = useState(
+        contactoActual ?? {
+            nombre: "",
+            telefono: "",
+            correo: "",
+            relacion: "",
+            direccion: "",
+        }
+    );
 
     const [errors, setErrors] = useState({});
 
+    const inputNombreRef = useRef(null); // referencia para el input
+    
 
     //Si tiene valor retorna true 
     function validaRequerido(valor) {
@@ -41,7 +45,8 @@ function ContactForm({ onRegistrarContacto }) {
             }
         }
         if (!validaRequerido(formData.relacion)) newErrors.relacion = 'La relacion con el contacto es requerido';
-        if (formData.correo.trim() && !validarCorreo(formData.correo)) {
+
+        if (formData.correo && formData.correo.trim() && !validarCorreo(formData.correo)) {
             newErrors.correo = 'El correo indicado no cumple con el formato de correo'
         }
         return newErrors;
@@ -118,6 +123,10 @@ function ContactForm({ onRegistrarContacto }) {
             }
         )
         notyf.success("Formulario limpio");
+        setTimeout(() => {
+            inputNombreRef.current?.focus();
+        }, 0);
+
     }
 
 
@@ -139,7 +148,7 @@ function ContactForm({ onRegistrarContacto }) {
                     <label className="font-semibold text-text-label">
                         Nombre<span className="text-secondary-red">*</span>
                     </label>
-                    <input className={`py-1.5 px-2 shadow-sm border rounded-md transition duration-150 ease-in-out focus:ring-1 focus:outline-none
+                    <input ref={inputNombreRef} className={`py-1.5 px-2 shadow-sm border rounded-md transition duration-150 ease-in-out focus:ring-1 focus:outline-none
                             ${errors.nombre ? 'border-secondary-red ring-secondary-red focus:ring-secondary-red focus:border-secondary-red' : 'border-border-form focus:ring-hover-input focus:border-hover-input'}
                         `}
                         type="text" name="nombre" value={formData.nombre} onChange={handleCambios} >
@@ -164,7 +173,7 @@ function ContactForm({ onRegistrarContacto }) {
                         <option value="">Seleccione una opcion</option>
                         <option value="Familia">Familia</option>
                         <option value="Amistad">Amigo(a)</option>
-                        <option value="Pareja">Pareja</option>
+                        <option value="Personal">Personal</option>
                         <option value="Trabajo">Trabajo</option>
                         <option value="Otro">Otro</option>
                     </select>
@@ -234,7 +243,7 @@ function ContactForm({ onRegistrarContacto }) {
             </form>
             <div className="mt-6  flex justify-between">
                 <button form="formContact" type="reset" onClick={limpiarFormulario} className="bg-white font-bold text-center rounded-md hover:bg-secondary-red hover:text-white text-secondary-red px-4 py-2 border border-secondary-red">Limpiar formulario</button>
-                <button form="formContact" type="submit" className="bg-white font-bold text-center rounded-md px-4 py-2 border border-secondary-green text-secondary-green hover:bg-secondary-green hover:text-black">Registrar</button>
+                <button form="formContact" type="submit" className="bg-white font-bold text-center rounded-md px-4 py-2 border border-secondary-green text-secondary-green hover:bg-secondary-green hover:text-black">{modoForm == "crear" ? "Agregar contacto" : "Actualizar contacto"}</button>
             </div>
         </>
     );
