@@ -173,11 +173,11 @@ export default function App() {
 
   function siguienteContacto() {
     setContactoElegido((prev) => {
-      let indice = estadoContactos.findIndex(contacto => contacto.id == prev.id);
-      if (indice == estadoContactos.length - 1) {
-        return estadoContactos[0];
+      let indice = contactosFiltrados.findIndex(contacto => contacto.id == prev.id);
+      if (indice == contactosFiltrados.length - 1) {
+        return contactosFiltrados[0];
       } else {
-        return estadoContactos[indice + 1];
+        return contactosFiltrados[indice + 1];
       }
     });
   }
@@ -185,11 +185,11 @@ export default function App() {
 
   function anteriorContacto() {
     setContactoElegido((prev) => {
-      let indice = estadoContactos.findIndex(contacto => contacto.id == prev.id);
+      let indice = contactosFiltrados.findIndex(contacto => contacto.id == prev.id);
       if (indice == 0) {
-        return estadoContactos[estadoContactos.length - 1];
+        return contactosFiltrados[contactosFiltrados.length - 1];
       } else {
-        return estadoContactos[indice - 1];
+        return contactosFiltrados[indice - 1];
       }
     });
   }
