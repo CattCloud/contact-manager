@@ -191,7 +191,7 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - Notificaciones (`Notyf`) para acciones exitosas o errores.
 - Transiciones suaves, estados visuales, iconografía SVG para mejorar la experiencia del usuario.
 
-👉 Diseño Responsive Adaptativo
+### 👉 Diseño Responsive Adaptativo
 - Toda la interfaz está construida usando TailwindCSS con breakpoints que permiten adaptar el layout según el tamaño de pantalla.
 - El main utiliza una estructura de grilla dinámica (md:grid-cols-[73%_25%] en desktop y grid-cols-1 en móviles) que reorganiza los paneles de forma intuitiva.
 - Componentes como ContactoDetalle y ListContacts ajustan su distribución en pantallas medianas o pequeñas, apilando el contenido y manteniendo legibilidad.
