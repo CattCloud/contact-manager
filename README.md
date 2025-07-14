@@ -88,6 +88,45 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - El texto coincidente se resalta en los resultados utilizando `highlighting` (`bg-yellow-200`, `font-semibold`).
 - Mantiene compatibilidad con los filtros por favoritos.
 
+¡Entendido, Erick! 🎯  
+Acá te dejo la sección completa y detallada de los **retos implementados** al estilo que estás usando, con viñetas explicativas y nombres de componentes bien marcados para mantener la coherencia y claridad en tu README.md:
+
+---
+
+## ✅ Retos Implementados
+
+### 👉 Búsqueda Inteligente Multicanal
+
+- Campo de búsqueda (`SearchContactInput`) que permite filtrar contactos **por nombre, teléfono o relación** simultáneamente.
+- Se actualiza en tiempo real a medida que el usuario escribe, sin necesidad de enviar formularios.
+- Palabras coincidentes se resaltan en los resultados usando `highlighting` visual (`bg-yellow-200`, `font-semibold`) para mejor experiencia.
+
+### 👉 Categorías con Etiquetas Visuales
+
+- Cada contacto tiene un campo `relacion` que puede ser: **Familia**, **Amistad**, **Trabajo**, **Personal** u **Otro**.
+- El componente `BadgeRelacion` muestra la categoría como una etiqueta de color que se adapta según el tipo.
+- Mejora la lectura visual y la clasificación dentro de la interfaz.
+
+### 👉 Persistencia con LocalStorage
+
+- Uso de `localStorageManager` (`managerls`) para guardar la lista de contactos localmente entre sesiones.
+- Al iniciar la app, se detecta si ya existen datos:  
+  - Si no, se inicializa con datos precargados.
+  - Si sí, se carga directamente sin perder cambios anteriores.
+- Cada vez que se edita, elimina o agrega un contacto, se actualiza automáticamente el almacenamiento local.
+
+### 👉 Modo Edición con Formulario Controlado
+
+- Al presionar “Editar”, se abre el componente `ModalView` con el formulario (`ContactForm`) pre-poblado con los datos del contacto.
+- Validaciones activas en tiempo real (nombre, teléfono, relación, formato de correo).
+- Los errores se muestran debajo de cada campo con íconos visuales (`SVG` + texto).
+- Al guardar, se actualiza el contacto en la lista sin duplicaciones ni recargas.
+
+### 👉 Despliegue en Netlify
+
+- Proyecto compilado con `Vite` usando `npm run build` y carpeta `dist` como `publish directory`.
+- App publicada en línea con una URL funcional: accesible para revisión, demostración o portafolio.
+
 
 ## Tecnologías y Librerías Utilizadas
 
