@@ -88,13 +88,6 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - El texto coincidente se resalta en los resultados utilizando `highlighting` (`bg-yellow-200`, `font-semibold`).
 - Mantiene compatibilidad con los filtros por favoritos.
 
-¡Entendido, Erick! 🎯  
-Acá te dejo la sección completa y detallada de los **retos implementados** al estilo que estás usando, con viñetas explicativas y nombres de componentes bien marcados para mantener la coherencia y claridad en tu README.md:
-
----
-
-## ✅ Retos Implementados
-
 ### 👉 Búsqueda Inteligente Multicanal
 
 - Campo de búsqueda (`SearchContactInput`) que permite filtrar contactos **por nombre, teléfono o relación** simultáneamente.
@@ -136,6 +129,16 @@ Acá te dejo la sección completa y detallada de los **retos implementados** al 
 - 🧩 Notyf para notificaciones interactivas
 - 🤖 GitHub como repositorio
 
+## Screenshots de la aplicación
+
+### Interfaz principal
+<img width="1365" height="643" alt="image" src="https://github.com/user-attachments/assets/d0e62c61-4b49-4ab2-a4c2-522725c8b0a3" />
+
+### Modal Nuevo Contacto
+<img width="1365" height="645" alt="image" src="https://github.com/user-attachments/assets/c699b6f5-2940-46e9-8550-6dac242faeb4" />
+
+### Modal Editar Contacto
+<img width="1365" height="645" alt="image" src="https://github.com/user-attachments/assets/5a605d72-11be-4da6-a02c-ee2174834bd8" />
 
 
 ## 📌 Cómo ejecutar
@@ -145,3 +148,8 @@ git clone https://github.com/CattCloud/contact-manager
 cd contact-manager
 npm install
 npm run dev
+
+## URL
+https://kontamanager.netlify.app/
+![Uploading image.png…]()
+ 
