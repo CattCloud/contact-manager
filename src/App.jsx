@@ -100,6 +100,7 @@ export default function App() {
             favorite: true, // Cambiamos true ↔ false
           }
         });
+        managerls.guardar(nuevaLista);
         return nuevaLista;
       });
       notyf.success("Listo! Todos los contactos son favoritos");
