@@ -209,6 +209,5 @@ npm run dev
 ```
 
 ## URL
-https://kontamanager.netlify.app/
-![Uploading image.png…]()
+https://kontamanager.netlify.app
  
