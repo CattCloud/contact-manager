@@ -206,6 +206,7 @@ git clone https://github.com/CattCloud/contact-manager
 cd contact-manager
 npm install
 npm run dev
+```
 
 ## URL
 https://kontamanager.netlify.app/
