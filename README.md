@@ -88,11 +88,6 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - El texto coincidente se resalta en los resultados utilizando `highlighting` (`bg-yellow-200`, `font-semibold`).
 - Mantiene compatibilidad con los filtros por favoritos.
 
-### 👉 Búsqueda Inteligente Multicanal
-
-- Campo de búsqueda (`SearchContactInput`) que permite filtrar contactos **por nombre, teléfono o relación** simultáneamente.
-- Se actualiza en tiempo real a medida que el usuario escribe, sin necesidad de enviar formularios.
-- Palabras coincidentes se resaltan en los resultados usando `highlighting` visual (`bg-yellow-200`, `font-semibold`) para mejor experiencia.
 
 ### 👉 Categorías con Etiquetas Visuales
 
