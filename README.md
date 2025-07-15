@@ -89,6 +89,33 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - Mantiene compatibilidad con los filtros por favoritos.
 
 
+### 👉 Categorías con Etiquetas Visuales
+
+- Cada contacto tiene un campo `relacion` que puede ser: **Familia**, **Amistad**, **Trabajo**, **Personal** u **Otro**.
+- El componente `BadgeRelacion` muestra la categoría como una etiqueta de color que se adapta según el tipo.
+- Mejora la lectura visual y la clasificación dentro de la interfaz.
+
+### 👉 Persistencia con LocalStorage
+
+- Uso de `localStorageManager` (`managerls`) para guardar la lista de contactos localmente entre sesiones.
+- Al iniciar la app, se detecta si ya existen datos:  
+  - Si no, se inicializa con datos precargados.
+  - Si sí, se carga directamente sin perder cambios anteriores.
+- Cada vez que se edita, elimina o agrega un contacto, se actualiza automáticamente el almacenamiento local.
+
+### 👉 Modo Edición con Formulario Controlado
+
+- Al presionar “Editar”, se abre el componente `ModalView` con el formulario (`ContactForm`) pre-poblado con los datos del contacto.
+- Validaciones activas en tiempo real (nombre, teléfono, relación, formato de correo).
+- Los errores se muestran debajo de cada campo con íconos visuales (`SVG` + texto).
+- Al guardar, se actualiza el contacto en la lista sin duplicaciones ni recargas.
+
+### 👉 Despliegue en Netlify
+
+- Proyecto compilado con `Vite` usando `npm run build` y carpeta `dist` como `publish directory`.
+- App publicada en línea con una URL funcional: accesible para revisión, demostración o portafolio.
+
+
 ## Tecnologías y Librerías Utilizadas
 
 - ⚛️ React (Hooks: `useState`, `useEffect`)
@@ -96,7 +123,75 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - ⚡ Vite como entorno de desarrollo
 - 🧩 Notyf para notificaciones interactivas
 - 🤖 GitHub como repositorio
+- 🎮 Modali , para mensajes de confirmacion
+     
+## Screenshots de la aplicación
 
+### Interfaz principal
+<img width="1365" height="643" alt="image" src="https://github.com/user-attachments/assets/d0e62c61-4b49-4ab2-a4c2-522725c8b0a3" />
+
+### Modal Nuevo Contacto
+<img width="1365" height="645" alt="image" src="https://github.com/user-attachments/assets/c699b6f5-2940-46e9-8550-6dac242faeb4" />
+
+### Modal Editar Contacto
+<img width="1365" height="645" alt="image" src="https://github.com/user-attachments/assets/5a605d72-11be-4da6-a02c-ee2174834bd8" />
+
+
+## ⚙️ Decisiones Técnicas y Patrones Aplicados
+
+### 👉 Diseño Modular de Componentes
+
+- Cada funcionalidad está separada en componentes bien definidos: `Header`, `Footer`, `ControlBar`, `ListContacts`, `ContactoDetalle`, `ModalView`, etc.
+- Facilita el mantenimiento, la reutilización y la escalabilidad del proyecto.
+
+### 👉 Manejo Centralizado del Estado
+
+- El componente principal (`App`) actúa como **orquestador del estado global**, gestionando:
+  - Lista de contactos (`estadoContactos`)
+  - Contacto seleccionado (`contactoElegido`)
+  - Filtros (`estadoFiltro`, `searchEstado`)
+  - Modal de formulario (`estadoModal`, `modoModal`)
+- Evita duplicaciones y mantiene un flujo predecible de datos.
+
+### 👉 Comunicación Bidireccional con Props
+
+- Los componentes hijos reciben datos y funciones desde el padre a través de `props`.
+- Las funciones como `onFavorite`, `onEditarContacto`, `onEliminarContacto`, permiten que los hijos **notifiquen al padre** sin romper el encapsulamiento.
+
+### 👉 Pattern de Renderizado Condicional
+
+- Uso de ternarios e indicadores visuales para mostrar:
+  - Mensajes cuando no hay contactos visibles
+  - Detalles sólo cuando hay contacto seleccionado
+  - Modal sólo si `isOpen === true`
+
+### 👉 Separación de Lógica Visual y Funcional
+
+- Utilización de utilidades como `localStorageManager` (`managerls`) para desacoplar la persistencia del flujo UI.
+- Las funciones de validación (`validarTelefono`, `validarCorreo`, `validaRequerido`) están aisladas dentro del formulario.
+
+### 👉 Hook `useEffect` para Sincronización Reactiva
+
+- Sincroniza el `contactoElegido` con los contactos visibles al aplicar búsqueda o filtro.
+- Evita renderizados infinitos usando dependencias controladas.
+
+### 👉 Pattern de Render Prop para Componentes Flexibles
+
+- `ModalConfirmaccion` recibe `triggerButton` como función → permite renderizar el botón de apertura desde el padre con total libertad visual.
+- Excelente ejemplo de **desacoplamiento visual** con control funcional integrado.
+
+### 👉 Patrones UX:
+
+- Modales (`Modali`) para confirmaciones con feedback destructivo.
+- Notificaciones (`Notyf`) para acciones exitosas o errores.
+- Transiciones suaves, estados visuales, iconografía SVG para mejorar la experiencia del usuario.
+
+### 👉 Diseño Responsive Adaptativo
+- Toda la interfaz está construida usando TailwindCSS con breakpoints que permiten adaptar el layout según el tamaño de pantalla.
+- El main utiliza una estructura de grilla dinámica (md:grid-cols-[73%_25%] en desktop y grid-cols-1 en móviles) que reorganiza los paneles de forma intuitiva.
+- Componentes como ContactoDetalle y ListContacts ajustan su distribución en pantallas medianas o pequeñas, apilando el contenido y manteniendo legibilidad.
+- Inputs, botones y modales se escalan correctamente sin romper el diseño, respetando márgenes, paddings y visual hierarchy.
+- Animaciones y estados de interacción (hover, focus, scale) fueron calibrados para funcionar tanto en táctiles como en escritorio.
 
 
 ## 📌 Cómo ejecutar
@@ -106,3 +201,8 @@ git clone https://github.com/CattCloud/contact-manager
 cd contact-manager
 npm install
 npm run dev
+```
+
+## URL
+https://kontamanager.netlify.app
+ 
