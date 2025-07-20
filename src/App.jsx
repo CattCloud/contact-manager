@@ -11,12 +11,46 @@ import { notyf } from './utils/notificacion.jsx';
 import SearchContactInput from './components/SearchContact.jsx';
 import { managerls } from './utils/localStorageManager.js';
 import BotonDeleteAll from './components/allDelete.jsx';
+import { fetchContacts, createContact, deleteContact } from './services/contactService.js';
+import ErrorScreen from './components/ErrorScreen.jsx';
+import { FetchError } from './utils/FetchError.js';
+
+
+import SplashScreen from './components/SplashScreen.jsx';
 
 export default function App() {
 
   const [estadoContactos, setContacto] = useState(
-    managerls.obtener()
+    //managerls.obtener()
+    []
   );
+
+  const [loading, setLoading] = useState(true); // Spinner activo
+
+  const [error, setError] = useState(null);
+
+
+  async function getContacts() {
+    try {
+      setLoading(true);
+      const contactos = await fetchContacts();
+      setContacto(contactos);
+      notyf.success(`${contactos.length} contactos cargados`);
+    } catch (error) {
+      if (error instanceof FetchError) {
+        setError({ codigo: error.codigo, descripcion: error.message });
+      } else {
+        setError({ codigo: "500", descripcion: "Error inesperado. Revisa tu conexión o intenta más tarde." });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getContacts();
+  }, []);
+
 
   const [estadoModal, setModalEstado] = useState(false)
 
@@ -62,6 +96,9 @@ export default function App() {
 
   const cantidadFavoritos = estadoContactos.filter((c) => c.favorite).length;
   const cantidadContactos = estadoContactos.length;
+
+
+
 
 
   function toggleFavorite(id) {
@@ -152,23 +189,41 @@ export default function App() {
   }
 
 
-  function manejadorNuevoContacto(nuevoContacto) {
-    if (validarDuplicado(nuevoContacto)) {
-      // Si pasa todo, se crea el contacto
-      const contactoListo = {
-        id: estadoContactos.length + 1,
-        ...nuevoContacto,
-        favorite: false,
+  async function manejadorNuevoContacto(nuevoContacto) {
+    if (!validarDuplicado(nuevoContacto)) return;
+    try {
+      setLoading(true);
+      // Enviar a la API
+      const contactoCreado = await createContact(nuevoContacto);
+
+      // Si la API responde con otro esquema, transformalo si hace falta
+      const contactoFinal = {
+        id: contactoCreado.id,
+        nombre: contactoCreado.fullname,
+        telefono: contactoCreado.phonenumber,
+        relacion: contactoCreado.type,
+        correo: contactoCreado.email,
+        direccion: contactoCreado.company,
+        fechaCumple: contactoCreado.birthday,
+        favorite: false
       };
-      const nuevoEstadoContacto = [...estadoContactos, contactoListo];
-      setContacto(nuevoEstadoContacto);
+
+      // Actualizar estado local
+      const nuevoEstado = [...estadoContactos, contactoFinal];
+      setContacto(nuevoEstado);
+      managerls.guardar(nuevoEstado);
+      setContactoElegido(contactoFinal);
+
       cerrarModal();
-      managerls.guardar(nuevoEstadoContacto);
       notyf.success("Contacto registrado correctamente");
-      console.log(estadoContactos.length);
-      setContactoElegido(nuevoEstadoContacto[nuevoEstadoContacto.length - 1]);
+
+    } catch (error) {
+      notyf.error(`Error al registrar contacto: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   }
+
 
 
 
@@ -232,12 +287,29 @@ export default function App() {
     }
   }
 
-  function manejadorEliminarContacto(id) {
-    const nuevoEstado = estadoContactos.filter(c => c.id !== id);
-    setContacto(nuevoEstado);
-    managerls.guardar(nuevoEstado);
-    notyf.success("Contacto eliminado correctamente");
+  async function manejadorEliminarContacto(id) {
+    try {
+      setLoading(true);
+
+      await deleteContact(id);
+
+      const nuevoEstado = estadoContactos.filter(c => c.id !== id);
+      setContacto(nuevoEstado);
+      managerls.guardar(nuevoEstado);
+      notyf.success("Contacto eliminado");
+
+      // Si el contacto eliminado era el que estaba en detalle
+      if (contactoElegido?.id === id) {
+        setContactoElegido(nuevoEstado[0] || null);
+      }
+
+    } catch (error) {
+      notyf.error(`Error al eliminar contacto: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
+
 
   function eliminarAllContacts() {
     if (estadoContactos.length) {
@@ -252,47 +324,68 @@ export default function App() {
 
   }
 
-
   return (
-    <div className='space-y-2'>
-      <Header />
-      <main className='grid md:grid-cols-[73%_25%] grid-cols-1 gap-2 min-h-[82vh]'>
-        <div className='space-y-3'>
-          <div className='ml-4 mr-4 md:pr-0 flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row border-b-2 border-border pb-2'>
-            <div className='flex gap-1 items-center justify-between'>
-              <ControlBar onAction={filterContactos} filtroActivo={estadoFiltro} cantidadFavoritos={cantidadFavoritos} cantidadContactos={cantidadContactos} />
-              <div className='flex gap-1'>
-                <BotonAllFavorite onAction={todosFavoritos} />
-                <BotonAddContacto onAction={abrirModalCrear} />
-                <BotonDeleteAll onAction={eliminarAllContacts}/>
+    <div className="h-screen flex flex-col">
+      {loading ? (
+        <SplashScreen />
+      ) : error ? (
+        <ErrorScreen codigo={error.codigo} descripcion={error.descripcion} />
+      ) : (
+        <>
+          <Header />
+          <main className="flex-1 grid md:grid-cols-[63%_35%] lg:grid-cols-[73%_25%] grid-cols-1 gap-2 overflow-hidden">
+            <div className="flex flex-col space-y-3 overflow-hidden">
+              <div className="ml-4 mr-4 md:pr-0 flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row border-b-2 border-border pb-2 flex-shrink-0">
+                <div className="flex gap-1 items-center justify-between">
+                  <ControlBar
+                    onAction={filterContactos}
+                    filtroActivo={estadoFiltro}
+                    cantidadFavoritos={cantidadFavoritos}
+                    cantidadContactos={cantidadContactos}
+                  />
+                  <div className="flex gap-1">
+                    <BotonAllFavorite onAction={todosFavoritos} />
+                    <BotonAddContacto onAction={abrirModalCrear} />
+                    <BotonDeleteAll onAction={eliminarAllContacts} />
+                  </div>
+                </div>
+                <SearchContactInput valorSearch={searchEstado} onSearch={manejadorSearch} />
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-4">
+                <ListContacts
+                  search={searchEstado}
+                  contactos={contactosFiltrados}
+                  onFavorite={toggleFavorite}
+                  mensajeIsEmpty={mensajeNoContactos}
+                  onSeleccionarContacto={seleccionarContacto}
+                  contactoElegido={contactoElegido}
+                  onEditarContacto={{ abrirModalEdicion }}
+                  onEliminarContacto={manejadorEliminarContacto}
+                />
               </div>
             </div>
-            <SearchContactInput valorSearch={searchEstado} onSearch={manejadorSearch} />
-          </div>
-          <ListContacts
-            search={searchEstado}
-            contactos={contactosFiltrados}
-            onFavorite={toggleFavorite}
-            mensajeIsEmpty={mensajeNoContactos}
-            onSeleccionarContacto={seleccionarContacto}
-            contactoElegido={contactoElegido}
-            onEditarContacto={abrirModalEdicion}
-            onEliminarContacto={manejadorEliminarContacto}
-          />
-        </div>
-        <ContactoDetalle contacto={contactoElegido} onToggleFavorito={toggleFavorite} onAnteriorContacto={anteriorContacto} onSiguientContacto={siguienteContacto} />
-        <ModalView
-          title={modoModal === "editar" ? "Editar Contacto" : "Nuevo Contacto"}
-          isOpen={estadoModal}
-          onClose={cerrarModal}
-          contactoActual={contactoAEditar}
-          modo={modoModal}
-          onAddContact={modoModal === "editar" ? manejadorEditarContacto : manejadorNuevoContacto}
-        />
-      </main>
-      <Footer />
+
+            <ContactoDetalle
+              contacto={contactoElegido}
+              onToggleFavorito={toggleFavorite}
+              onAnteriorContacto={anteriorContacto}
+              onSiguientContacto={siguienteContacto}
+            />
+            <ModalView
+              title={modoModal === "editar" ? "Editar Contacto" : "Nuevo Contacto"}
+              isOpen={estadoModal}
+              onClose={cerrarModal}
+              contactoActual={contactoAEditar}
+              modo={modoModal}
+              onAddContact={modoModal === "editar" ? manejadorEditarContacto : manejadorNuevoContacto}
+            />
+          </main>
+          <Footer />
+        </>
+      )}
     </div>
-  )
+  );
 }
 
 

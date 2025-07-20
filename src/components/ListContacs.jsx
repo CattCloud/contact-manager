@@ -11,7 +11,7 @@ function ListContacts({ search, contactos, onFavorite, mensajeIsEmpty, onSelecci
     return (
         <>
             {contactos.length ?
-                <div className="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 px-4">
+                <div className="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 ">
                     {contactos.map((contacto) => {
                         const isSelected = contactoElegido?.id === contacto.id;
                         return (
@@ -39,14 +39,3 @@ function ListContacts({ search, contactos, onFavorite, mensajeIsEmpty, onSelecci
 
 export default ListContacts;
 
-
-/*
-                    <ModalContact 
-                        title="Detalle Contacto" 
-                        isOpen={!!contactoSeleccionado}
-                        contacto={contactoSeleccionado}
-                        onClose={() => setContactoSeleccionado(null)}
-                        onSiguientContacto={siguienteContacto}
-                        onAnteriorContacto={anteriorContacto}
-                    />
-*/

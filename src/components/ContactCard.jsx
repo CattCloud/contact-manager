@@ -6,6 +6,7 @@ export default function ContactCard({ contacto, onFavorite, onVerContacto, searc
 
     const { id, nombre, relacion, telefono, favorite } = contacto;
 
+
     function resaltar(texto) {
         if (!search) return texto;
 
@@ -26,14 +27,9 @@ export default function ContactCard({ contacto, onFavorite, onVerContacto, searc
     ${isSelected ? "shadow-md scale-[1.01] border-accent bg-gray-100" : ""}
   `}
         >
-            <div id="contact-card-head" className="flex justify-between">
-                <div className="text-text-primary flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                    <p>{resaltar(nombre)}</p>
-                </div>
-                <div className="flex gap-2 justify-start items-center">
+            <div id="contact-card-head" className="text-text-primary flex justify-between gap-1">
+                <p>{resaltar(nombre)}</p>
+                <div className="flex gap-2 justify-start items-start">
                     <BadgeRelacion tipoRelacion={relacion} />
                 </div>
             </div>

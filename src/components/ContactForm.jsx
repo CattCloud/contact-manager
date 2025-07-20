@@ -171,11 +171,11 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                         `}
                         name="relacion" value={formData.relacion} onChange={handleCambios} >
                         <option value="">Seleccione una opcion</option>
-                        <option value="Familia">Familia</option>
-                        <option value="Amistad">Amigo(a)</option>
-                        <option value="Personal">Personal</option>
-                        <option value="Trabajo">Trabajo</option>
-                        <option value="Otro">Otro</option>
+                        <option value="familia">Familia</option>
+                        <option value="amistad">Amigo(a)</option>
+                        <option value="personal">Personal</option>
+                        <option value="trabajo">Trabajo</option>
+                        <option value="social">Social</option>
                     </select>
                     {errors.relacion && (
                         <div className="text-secondary-red flex items-center mt-0.5 gap-2">
