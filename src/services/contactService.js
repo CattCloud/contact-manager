@@ -2,11 +2,13 @@ import { FetchError } from "../utils/FetchError";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const erroresHTTP = {
+  400: "Datos enviados incorrectos.",
   403: "Acceso denegado: permisos insuficientes.",
-  404: "Contacto no encontrado en la base de datos.",
-  500: "Fallo del servidor. Intenta más tarde.",
+  404: "Ruta no encontrada en el servidor.",
+  500: "Error interno del servidor. Intenta más tarde.",
   default: "Error inesperado. Por favor, vuelve a intentarlo."
 };
+
 
 
 // GET - Obtener todos los contactos
@@ -31,7 +33,7 @@ export async function fetchContacts() {
       fechaCumple: contactoApi.birthday,
       creado: contactoApi.createdAt,
       actualizado: contactoApi.updatedAt,
-      favorito: false // o true si lo vas a manejar desde localStorage
+      favorito: false
     }));
     return contactos;
   } catch (error) {
@@ -42,18 +44,15 @@ export async function fetchContacts() {
 
 }
 
-
-// POST - Crear nuevo contacto
 export async function createContact(contactData) {
   try {
-    // Transformar los datos del frontend al formato que espera la API
     const payload = {
       fullname: contactData.nombre,
       phonenumber: contactData.telefono,
-      email: contactData.correo || "", // opcional
+      email: contactData.correo ?? "", // más conciso
       type: contactData.relacion,
-      company: contactData.direccion || "", // opcional
-      birthday: contactData.fechaCumple || null
+      company: contactData.direccion ?? "",
+      birthday: contactData.fechaCumple ?? null
     };
 
     const response = await fetch(API_URL, {
@@ -65,17 +64,32 @@ export async function createContact(contactData) {
     });
 
     if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      throw new FetchError({
+        codigo: response.status.toString(),
+        descripcion: erroresHTTP[response.status] || erroresHTTP.default
+      });
     }
 
-    const nuevoContacto = await response.json();
-    return nuevoContacto; // lo podés transformar de nuevo si querés usar tu esquema
+    //const data = await response.json();
 
+
+    const nuevoContacto = await response.json();
+    return nuevoContacto;
   } catch (error) {
     console.error("❌ Error al crear contacto:", error);
+
+    // Enviar error estandarizado si no es FetchError
+    if (!(error instanceof FetchError)) {
+      throw new FetchError({
+        codigo: "default",
+        descripcion: erroresHTTP.default
+      });
+    }
+
     throw error;
   }
 }
+
 
 
 export async function deleteContact(id) {
@@ -101,3 +115,55 @@ export async function deleteContact(id) {
 }
 
 
+
+export async function updateContact(contactData) {
+  try {
+    const payload = {
+      fullname: contactData.nombre,
+      phonenumber: contactData.telefono,
+      email: contactData.correo ?? "",
+      type: contactData.relacion,
+      company: contactData.direccion ?? "",
+      birthday: contactData.fechaCumple ?? null
+    };
+
+    const response = await fetch(`${API_URL}/${contactData.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new FetchError({
+        codigo: response.status.toString(),
+        descripcion: erroresHTTP[response.status] || erroresHTTP.default
+      });
+    }
+
+    const contactoActualizado = await response.json();
+        // Transformar si la API devuelve campos con otros nombres
+    const contactoFinal = {
+      id: contactoActualizado.id,
+      nombre: contactoActualizado.fullname,
+      telefono: contactoActualizado.phonenumber,
+      relacion: contactoActualizado.type,
+      correo: contactoActualizado.email,
+      //direccion: contactoActualizado.company,
+      //fechaCumple: contactoActualizado.birthday,
+      favorito: contactoActualizado.favorite
+    };
+
+    return contactoFinal;
+  } catch (error) {
+    if (!(error instanceof FetchError)) {
+      throw new FetchError({
+        codigo: "default",
+        descripcion: erroresHTTP.default
+      });
+    }
+
+    throw error;
+  }
+}

@@ -11,7 +11,7 @@ import { notyf } from './utils/notificacion.jsx';
 import SearchContactInput from './components/SearchContact.jsx';
 import { managerls } from './utils/localStorageManager.js';
 import BotonDeleteAll from './components/allDelete.jsx';
-import { fetchContacts, createContact, deleteContact } from './services/contactService.js';
+import { fetchContacts, createContact, deleteContact, updateContact } from './services/contactService.js';
 import ErrorScreen from './components/ErrorScreen.jsx';
 import { FetchError } from './utils/FetchError.js';
 
@@ -80,7 +80,7 @@ export default function App() {
         c.telefono.includes(textoBuscado) ||
         c.relacion?.toLowerCase().includes(textoBuscado)
       );
-    });
+    }).reverse();
 
   useEffect(() => {
     if (contactosFiltrados.length) {
@@ -195,7 +195,6 @@ export default function App() {
       setLoading(true);
       // Enviar a la API
       const contactoCreado = await createContact(nuevoContacto);
-
       // Si la API responde con otro esquema, transformalo si hace falta
       const contactoFinal = {
         id: contactoCreado.id,
@@ -274,18 +273,43 @@ export default function App() {
   }
 
 
-  function manejadorEditarContacto(contacto) {
-    if (validarDuplicado(contacto)) {
+  async function manejadorEditarContacto(contactoEditado, isEdit) {
+    if (!isEdit) {
+      cerrarModal();
+      notyf.open({
+        type: 'info',
+        message: 'No se modificó ningún valor del contacto.'
+      });
+      return;
+    }
+    if (!validarDuplicado(contactoEditado)) return;
+
+    try {
+      setLoading(true);
+      // Llamar al API para editar contacto
+      const contactoActualizado = await updateContact(contactoEditado);
+      // Actualizar estado
       const nuevoEstado = estadoContactos.map((c) =>
-        c.id === contacto.id ? contacto : c
+        c.id === contactoActualizado.id ? contactoActualizado : c
       );
       setContacto(nuevoEstado);
       managerls.guardar(nuevoEstado);
+      setContactoElegido(contactoActualizado);
       cerrarModal();
-      setContactoElegido(contacto);
       notyf.success("Contacto editado correctamente");
+    } catch (error) {
+        if (error instanceof FetchError) {
+          setError({ codigo: error.codigo, descripcion: error.message });
+        } else {
+          setError({ codigo: "500", descripcion: "Error inesperado. Revisa tu conexión o intenta más tarde." });
+        }
+    } finally {
+      setLoading(false);
     }
   }
+
+
+
 
   async function manejadorEliminarContacto(id) {
     try {
@@ -302,7 +326,6 @@ export default function App() {
       if (contactoElegido?.id === id) {
         setContactoElegido(nuevoEstado[0] || null);
       }
-
     } catch (error) {
       notyf.error(`Error al eliminar contacto: ${error.message}`);
     } finally {
@@ -360,7 +383,7 @@ export default function App() {
                   mensajeIsEmpty={mensajeNoContactos}
                   onSeleccionarContacto={seleccionarContacto}
                   contactoElegido={contactoElegido}
-                  onEditarContacto={{ abrirModalEdicion }}
+                  onEditarContacto={abrirModalEdicion}
                   onEliminarContacto={manejadorEliminarContacto}
                 />
               </div>

@@ -1,22 +1,22 @@
 import { useState, useRef } from "react";
 import { notyf } from "../utils/notificacion";
-
+import Modali, { useModali } from 'modali';
 
 function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual = null }) {
+
     const [formData, setFormData] = useState(
         contactoActual ?? {
             nombre: "",
             telefono: "",
             correo: "",
-            relacion: "",
-            direccion: "",
+            relacion: ""
         }
     );
 
     const [errors, setErrors] = useState({});
 
     const inputNombreRef = useRef(null); // referencia para el input
-    
+
 
     //Si tiene valor retorna true 
     function validaRequerido(valor) {
@@ -45,14 +45,19 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
             }
         }
         if (!validaRequerido(formData.relacion)) newErrors.relacion = 'La relacion con el contacto es requerido';
-
-        if (formData.correo && formData.correo.trim() && !validarCorreo(formData.correo)) {
-            newErrors.correo = 'El correo indicado no cumple con el formato de correo'
+        if (!validaRequerido(formData.correo)) {
+            newErrors.correo = 'El correo es requerido';
+        } else {
+            if (!validarCorreo(formData.correo)) {
+                newErrors.correo = 'El correo indicado no cumple con el formato de correo'
+            }
         }
+
+
         return newErrors;
     }
 
-    const camposRequeridos = ["nombre", "telefono", "relacion"];
+    const camposRequeridos = ["nombre", "telefono", "relacion", "correo"];
     const totalCampos = camposRequeridos.length;
     let camposCompletos = camposRequeridos.filter(campo => esCampoValido(campo, formData[campo])).length;
 
@@ -64,6 +69,8 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                 return validarTelefono(valor);
             case "relacion":
                 return validaRequerido(valor);
+            case "correo":
+                return validarCorreo(valor);
             default:
                 return validaRequerido(valor);
         }
@@ -84,7 +91,7 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                     esValido = validarTelefono(value);
                     break;
                 case "correo":
-                    esValido = value.trim() === "" || validarCorreo(value);
+                    esValido = validarCorreo(value);
                     break;
             }
 
@@ -99,6 +106,33 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
         setFormData({ ...formData, [name]: value });
     }
 
+    function confirmarEdicion() {
+        toggleModalConfirmarEdicion();
+        onRegistrarContacto(formData, true);
+    }
+
+    function cancelarEdicion() {
+        toggleModalConfirmarEdicion();
+    }
+
+    const [modalConfirmarEdicion, toggleModalConfirmarEdicion] = useModali({
+        animated: true,
+        title: 'Confirmar edición',
+        message: `¿Deseas actualizar el contacto "${formData.nombre}"?`,
+        buttons: [
+            <Modali.Button
+                label="Cancelar"
+                isStyleCancel
+                onClick={cancelarEdicion}
+            />,
+            <Modali.Button
+                label="Confirmar"
+                isStyleDestructive
+                onClick={confirmarEdicion}
+            />
+        ]
+    });
+
 
     function handleSubmit(e) {
         e.preventDefault();
@@ -108,7 +142,15 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
             return; // No continuar si hay errores
         }
         setErrors({}); //Si no hay errores se limpian
-        onRegistrarContacto(formData);
+        if (modoForm === "editar") {
+            if (comparadorDatos()) {
+                toggleModalConfirmarEdicion(); // 🟢 mostrar modal
+            }else{
+                onRegistrarContacto(formData, false);
+            }
+        } else {
+            onRegistrarContacto(formData);
+        }
     }
 
 
@@ -118,8 +160,7 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                 nombre: "",
                 telefono: "",
                 correo: "",
-                relacion: "",
-                direccion: "",
+                relacion: ""
             }
         )
         notyf.success("Formulario limpio");
@@ -129,6 +170,15 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
 
     }
 
+    //Objetivo: Saber si se edito un contacto
+    function comparadorDatos() {
+        const { nombre, telefono, correo, relacion } = contactoActual;
+        //Si son diferentes lo valores retorna true
+        if (formData.nombre != nombre || formData.telefono != telefono || formData.correo != correo || formData.relacion != relacion) {
+            return true
+        }
+        return false;
+    }
 
 
     return (
@@ -207,7 +257,7 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                 </div>
                 <div className="flex flex-col gap-2">
                     <label className="font-semibold text-text-label">
-                        Correo
+                        Correo<span className="text-secondary-red">*</span>
                     </label>
                     <input className={`py-1.5 px-2 shadow-sm border rounded-md transition duration-150 ease-in-out focus:ring-1 focus:outline-none
                             ${errors.correo ? 'border-secondary-red ring-secondary-red focus:ring-secondary-red focus:border-secondary-red' : 'border-border-form focus:ring-hover-input focus:border-hover-input'}
@@ -223,7 +273,8 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                         </div>
                     )}
                 </div>
-                <div className="flex flex-col gap-2">
+                {/*
+                                <div className="flex flex-col gap-2">
                     <label className="font-semibold text-text-label">
                         Direccion
                     </label>
@@ -240,11 +291,13 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                         </div>
                     )}
                 </div>
+                */}
             </form>
             <div className="mt-6  flex justify-between">
                 <button form="formContact" type="reset" onClick={limpiarFormulario} className="bg-white font-bold text-center rounded-md hover:bg-secondary-red hover:text-white text-secondary-red px-4 py-2 border border-secondary-red">Limpiar formulario</button>
                 <button form="formContact" type="submit" className="bg-white font-bold text-center rounded-md px-4 py-2 border border-secondary-green text-secondary-green hover:bg-secondary-green hover:text-black">{modoForm == "crear" ? "Agregar contacto" : "Actualizar contacto"}</button>
             </div>
+            <Modali.Modal {...modalConfirmarEdicion} />
         </>
     );
 }
