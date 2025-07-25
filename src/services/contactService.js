@@ -167,3 +167,42 @@ export async function updateContact(contactData) {
     throw error;
   }
 }
+
+
+export async function fetchContactById(id) {
+  try {
+    
+    const response = await fetch(`${API_URL}/${id}`);
+    
+    if (!response.ok) {
+      throw new FetchError({
+        codigo: response.status.toString(),
+        descripcion: erroresHTTP[response.status] || erroresHTTP.default
+      });
+    }
+    
+    const contactoApi = await response.json();
+    const contactoFinal={
+      id: contactoApi.id,
+      nombre: contactoApi.fullname,
+      telefono: contactoApi.phonenumber,
+      relacion: contactoApi.type,
+      correo: contactoApi.email,
+      direccion: contactoApi.company, // o contactApi.address si existiera
+      fechaCumple: contactoApi.birthday,
+      creado: contactoApi.createdAt,
+      actualizado: contactoApi.updatedAt,
+      favorito: false
+    }
+    return contactoFinal;
+    
+  } catch (error) {
+    if (!(error instanceof FetchError)) {
+      throw new FetchError({
+        codigo: "default",
+        descripcion: erroresHTTP.default
+      });
+    }
+    throw error;
+  }
+}

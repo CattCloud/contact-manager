@@ -2,7 +2,6 @@
 
 :root {
   font-family: "Inter", sans-serif;
-
 }
 
 @theme{
@@ -28,4 +27,8 @@
 
   
  /* Azul para botones, enlaces o info */
+}
+
+main {
+  min-height: unset !important;
 }

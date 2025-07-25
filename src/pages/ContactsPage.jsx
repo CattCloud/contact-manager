@@ -16,9 +16,8 @@ import ErrorScreen from '../components/ErrorScreen.jsx';
 import { FetchError } from '../utils/FetchError.js';
 import SplashScreen from '../components/SplashScreen.jsx';
 
-
 function ContactsPage() {
-
+  
   const [estadoContactos, setContacto] = useState(
     //managerls.obtener()
     []
@@ -29,11 +28,25 @@ function ContactsPage() {
   const [error, setError] = useState(null);
 
 
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const manejarScroll = () => {
+      setScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener("scroll", manejarScroll);
+    return () => window.removeEventListener("scroll", manejarScroll);
+  }, []);
+
+
+
   async function getContacts() {
     try {
       setLoading(true);
       const contactos = await fetchContacts();
       setContacto(contactos);
+      //console.log(contactos);
       notyf.success(`${contactos.length} contactos cargados`);
     } catch (error) {
       if (error instanceof FetchError) {
@@ -65,6 +78,9 @@ function ContactsPage() {
 
   const textoBuscado = searchEstado.trim().toLowerCase();
 
+
+
+  
   const contactosFiltrados = estadoContactos
     .filter((c) => {
       // Primero aplicamos el filtro de favoritos
@@ -80,6 +96,7 @@ function ContactsPage() {
         c.relacion?.toLowerCase().includes(textoBuscado)
       );
     }).reverse();
+
 
   useEffect(() => {
     if (contactosFiltrados.length) {
@@ -223,32 +240,6 @@ function ContactsPage() {
   }
 
 
-
-
-  function siguienteContacto() {
-    setContactoElegido((prev) => {
-      let indice = contactosFiltrados.findIndex(contacto => contacto.id == prev.id);
-      if (indice == contactosFiltrados.length - 1) {
-        return contactosFiltrados[0];
-      } else {
-        return contactosFiltrados[indice + 1];
-      }
-    });
-  }
-
-
-  function anteriorContacto() {
-    setContactoElegido((prev) => {
-      let indice = contactosFiltrados.findIndex(contacto => contacto.id == prev.id);
-      if (indice == 0) {
-        return contactosFiltrados[contactosFiltrados.length - 1];
-      } else {
-        return contactosFiltrados[indice - 1];
-      }
-    });
-  }
-
-
   function manejadorSearch(e) {
     const value_search = e.target.value;
     setSearch(value_search);
@@ -297,42 +288,41 @@ function ContactsPage() {
       cerrarModal();
       notyf.success("Contacto editado correctamente");
     } catch (error) {
-        if (error instanceof FetchError) {
-          setError({ codigo: error.codigo, descripcion: error.message });
-        } else {
-          setError({ codigo: "500", descripcion: "Error inesperado. Revisa tu conexión o intenta más tarde." });
-        }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-
-
-
-  async function manejadorEliminarContacto(id) {
-    try {
-      setLoading(true);
-
-      await deleteContact(id);
-
-      const nuevoEstado = estadoContactos.filter(c => c.id !== id);
-      setContacto(nuevoEstado);
-      managerls.guardar(nuevoEstado);
-      notyf.success("Contacto eliminado");
-
-      // Si el contacto eliminado era el que estaba en detalle
-      if (contactoElegido?.id === id) {
-        setContactoElegido(nuevoEstado[0] || null);
+      if (error instanceof FetchError) {
+        setError({ codigo: error.codigo, descripcion: error.message });
+      } else {
+        setError({ codigo: "500", descripcion: "Error inesperado. Revisa tu conexión o intenta más tarde." });
       }
-    } catch (error) {
-      notyf.error(`Error al eliminar contacto: ${error.message}`);
     } finally {
       setLoading(false);
     }
   }
 
 
+
+// Alternativa: ¿Será que el loading está interfiriendo?
+// Prueba esta versión sin el loading:
+async function manejadorEliminarContacto(id) {
+  try {
+    await deleteContact(id);
+
+    const nuevoEstado = estadoContactos.filter(c => c.id !== id);
+    setContacto(nuevoEstado);
+    managerls.guardar(nuevoEstado);
+    notyf.success("Contacto eliminado");
+
+    // Si el contacto eliminado era el que estaba en detalle
+    if (contactoElegido?.id === id) {
+      setContactoElegido(nuevoEstado[0] || null);
+    }
+
+  } catch (error) {
+    notyf.error(`Error al eliminar contacto: ${error.message}`);
+  }
+}
+
+
+  /*
   function eliminarAllContacts() {
     if (estadoContactos.length) {
       setContacto([])
@@ -341,23 +331,22 @@ function ContactsPage() {
     }
     else {
       notyf.error("No hay contactos que eliminar");
-
     }
-
-  }
+  }*/
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {loading ? (
         <SplashScreen />
       ) : error ? (
         <ErrorScreen codigo={error.codigo} descripcion={error.descripcion} />
       ) : (
         <>
-          <Header />
-          <main className="flex-1 grid md:grid-cols-[63%_35%] lg:grid-cols-[73%_25%] grid-cols-1 gap-2 overflow-hidden">
-            <div className="flex flex-col space-y-3 overflow-hidden">
-              <div className="ml-4 mr-4 md:pr-0 flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row border-b-2 border-border pb-2 flex-shrink-0">
+          <Header page={"contacts"} />
+          {/* Sección fija con filtros y controles */}
+          <div className={`sticky top-0 z-10 bg-white ${scrolled ? "shadow-sm" : ""}`}>
+            <div className="px-2 sm:px-4 lg:px-6 py-3">
+              <div className="flex lg:justify-between gap-2 lg:items-center flex-col lg:flex-row">
                 <div className="flex gap-1 items-center justify-between">
                   <ControlBar
                     onAction={filterContactos}
@@ -368,41 +357,38 @@ function ContactsPage() {
                   <div className="flex gap-1">
                     <BotonAllFavorite onAction={todosFavoritos} />
                     <BotonAddContacto onAction={abrirModalCrear} />
-                    <BotonDeleteAll onAction={eliminarAllContacts} />
+                    {/*<BotonDeleteAll onAction={eliminarAllContacts} />*/}
+
                   </div>
                 </div>
                 <SearchContactInput valorSearch={searchEstado} onSearch={manejadorSearch} />
               </div>
-
-              <div className="flex-1 overflow-y-auto px-4">
-                <ListContacts
-                  search={searchEstado}
-                  contactos={contactosFiltrados}
-                  onFavorite={toggleFavorite}
-                  mensajeIsEmpty={mensajeNoContactos}
-                  onSeleccionarContacto={seleccionarContacto}
-                  contactoElegido={contactoElegido}
-                  onEditarContacto={abrirModalEdicion}
-                  onEliminarContacto={manejadorEliminarContacto}
-                />
-              </div>
             </div>
+          </div>
 
-            <ContactoDetalle
-              contacto={contactoElegido}
-              onToggleFavorito={toggleFavorite}
-              onAnteriorContacto={anteriorContacto}
-              onSiguientContacto={siguienteContacto}
-            />
-            <ModalView
-              title={modoModal === "editar" ? "Editar Contacto" : "Nuevo Contacto"}
-              isOpen={estadoModal}
-              onClose={cerrarModal}
-              contactoActual={contactoAEditar}
-              modo={modoModal}
-              onAddContact={modoModal === "editar" ? manejadorEditarContacto : manejadorNuevoContacto}
+          {/* Contenido principal que se expande naturalmente */}
+          <main className="flex-1 px-2 sm:px-4 lg:px-6 py-3">
+            <ListContacts
+              search={searchEstado}
+              contactos={contactosFiltrados}
+              onFavorite={toggleFavorite}
+              mensajeIsEmpty={mensajeNoContactos}
+              onSeleccionarContacto={seleccionarContacto}
+              contactoElegido={contactoElegido}
+              onEditarContacto={abrirModalEdicion}
+              onEliminarContacto={manejadorEliminarContacto}
             />
           </main>
+
+          <ModalView
+            title={modoModal === "editar" ? "Editar Contacto" : "Nuevo Contacto"}
+            isOpen={estadoModal}
+            onClose={cerrarModal}
+            contactoActual={contactoAEditar}
+            modo={modoModal}
+            onAddContact={modoModal === "editar" ? manejadorEditarContacto : manejadorNuevoContacto}
+          />
+
           <Footer />
         </>
       )}
