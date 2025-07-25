@@ -1,8 +1,13 @@
-export default function Copyright(){
+export default function Copyright() {
     const year = new Date().getFullYear();
     return (
-        <div className="text-text-secondary font-semibold text-md ">
-            @{year} - Erick Verde
-        </div>
+        <>
+            <div className="text-text-secondary font-semibold text-md mb-2">
+                {year} - Erick Verde
+            </div>
+            <div className="text-text-secondary text-sm">
+                Desarrollado con ❤️ para una mejor gestión de contactos
+            </div>
+        </>
     );
 }

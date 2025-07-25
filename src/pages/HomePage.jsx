@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import phone from "../assets/phone.png";
 
 function HomePage() {
 
-  const navigate = useNavigate();  
-  const [currentYear] = useState(new Date().getFullYear());
+  const navigate = useNavigate();
   const [animatedStats, setAnimatedStats] = useState({
     contacts: 0,
     categories: 0,
     searches: 0
   });
 
-  
+
   // Animación de contadores al cargar
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -77,57 +78,40 @@ function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-secondary-green rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="white" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-              </div>
-              <h1 className="text-xl font-bold text-text-primary">Contact Manager</h1>
-            </div>
-            <nav className="hidden md:flex space-x-4">
-              <button 
-               className="text-text-secondary hover:text-text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Ver Contactos
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
-
+      <Header page="home" />
       {/* Hero Section */}
-      <section className="flex-1 bg-gradient-to-br from-bg-primary to-bg-secondary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <section className="flex-1 relative">
+        {/* Radial Gradient Background */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            background: `
+            radial-gradient(
+              125% 125% at 50% 100%,
+              rgba(34, 197, 94, 0.25),
+              transparent 65%
+            )
+          `,
+            filter: "blur(50px)",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="text-center">
             <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-secondary-green rounded-full mb-6 shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="white" className="w-10 h-10">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
+              <div className="inline-flex items-center size-25 justify-center  mb-2">
+                <img src={phone} alt="Logo Agenda de Contactos" className='p-3' />
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-text-primary mb-6">
-              Bienvenido a tu
+            <h1 className="text-4xl md:text-6xl font-bold text-text-primary mb-6"> Bienvenido a tu
               <span className="block text-secondary-green">Agenda Personal</span>
             </h1>
-            <p className="text-lg md:text-xl text-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed">
-              Organiza, gestiona y mantén siempre cerca a las personas más importantes de tu vida. 
-              Una interfaz simple y poderosa para todos tus contactos.
-            </p>
+            <p className="text-lg md:text-xl text-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed"> Organiza, gestiona y mantén siempre cerca a las personas más importantes de tu vida. Una interfaz simple y poderosa para todos tus contactos. </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                 onClick={manejarClick} 
-                className="bg-secondary-green hover:bg-green-600 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
-              >
-                Ver Mis Contactos
+              <button onClick={manejarClick} className="bg-secondary-green hover:bg-green-600 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg" > Ver Mis Contactos
               </button>
-              <button className="bg-white hover:bg-gray-50 text-text-primary font-semibold px-8 py-3 rounded-lg border border-border transition-all duration-200 shadow-lg">
-                Conocer Más
-              </button>
+              <button className="bg-white hover:bg-gray-50 text-text-primary font-semibold px-8 py-3 rounded-lg border border-border transition-all duration-200 shadow-lg"> Conocer Más </button>
             </div>
           </div>
         </div>
@@ -146,7 +130,7 @@ function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-bg-primary p-6 rounded-xl border border-border hover:shadow-lg transition-all duration-300 hover:scale-105 group"
               >
@@ -211,8 +195,8 @@ function HomePage() {
           <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
             Comienza ahora y experimenta la forma más eficiente de gestionar tu agenda personal
           </p>
-          <button 
-           
+          <button
+
             className="bg-secondary-green hover:bg-green-600 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
           >
             Comenzar Ahora
@@ -221,28 +205,8 @@ function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-bg-secondary border-t border-border py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-secondary-green rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="white" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-              </div>
-              <span className="text-text-primary font-semibold">Contact Manager</span>
-            </div>
-            <div className="text-center md:text-right">
-              <div className="text-text-secondary font-semibold text-md mb-2">
-                @{currentYear} - Erick Verde
-              </div>
-              <div className="text-text-secondary text-sm">
-                Desarrollado con ❤️ para una mejor gestión de contactos
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
+
     </div>
   );
 }
