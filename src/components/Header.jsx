@@ -1,9 +1,9 @@
 import phone from "../assets/phone.png";
 import { Link } from "react-router-dom";
 import Navigation from "./Navigation";
+import SearchHeader from "./searchGeneral";
 
-
-export default function Header({ page }) {
+export default function Header({ page ,search=true }) {
   const background = page === "home" ? "bg-white" : "bg-gray-100";
 
   return (
@@ -17,8 +17,7 @@ export default function Header({ page }) {
               </div>
               <h1 className="text-xl font-bold text-text-primary">Agenda de Contactos</h1>
             </Link>
-
-
+          {search && <SearchHeader/>}
           </div>
           <Navigation/>
         </div>

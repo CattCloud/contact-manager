@@ -16,6 +16,8 @@ import ErrorScreen from '../components/ErrorScreen.jsx';
 import { FetchError } from '../utils/FetchError.js';
 import SplashScreen from '../components/SplashScreen.jsx';
 
+
+
 function ContactsPage() {
   
   const [estadoContactos, setContacto] = useState(
@@ -46,7 +48,7 @@ function ContactsPage() {
       setLoading(true);
       const contactos = await fetchContacts();
       setContacto(contactos);
-      //console.log(contactos);
+      console.log(contactos);
       notyf.success(`${contactos.length} contactos cargados`);
     } catch (error) {
       if (error instanceof FetchError) {
