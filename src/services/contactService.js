@@ -1,4 +1,7 @@
 import { FetchError } from "../utils/FetchError";
+import { procesarContactosAPI } from "../utils/normalizarTelefono";
+
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const erroresHTTP = {
@@ -23,26 +26,36 @@ export async function fetchContacts() {
     }
     const rawData = await response.json();
 
-    const contactos = rawData.map(contactoApi => ({
+    // Mapear datos básicos de la API
+    const contactosBasicos = rawData.map(contactoApi => ({
       id: contactoApi.id,
       nombre: contactoApi.fullname,
-      telefono: contactoApi.phonenumber,
+      telefono: contactoApi.phonenumber, // Teléfono original de la API
       relacion: contactoApi.type,
       correo: contactoApi.email,
-      direccion: contactoApi.company, // o contactApi.address si existiera
+      direccion: contactoApi.company,
       fechaCumple: contactoApi.birthday,
       creado: contactoApi.createdAt,
       actualizado: contactoApi.updatedAt,
       favorito: false
     }));
-    return contactos;
+
+    // Procesar y normalizar los teléfonos
+    const contactosNormalizados = procesarContactosAPI(contactosBasicos);
+
+    // Opcional: Log para debugging
+    console.log('Contactos normalizados:', contactosNormalizados);
+
+    return contactosNormalizados;
+
   } catch (error) {
     if (error instanceof FetchError) {
-      throw error; //  ya está listo para ser capturado por el padre
+      throw error;
     }
+    throw new Error(`Error inesperado al obtener contactos: ${error.message}`);
   }
-
 }
+
 
 export async function createContact(contactData) {
   try {
@@ -143,7 +156,7 @@ export async function updateContact(contactData) {
     }
 
     const contactoActualizado = await response.json();
-        // Transformar si la API devuelve campos con otros nombres
+    // Transformar si la API devuelve campos con otros nombres
     const contactoFinal = {
       id: contactoActualizado.id,
       nombre: contactoActualizado.fullname,
@@ -171,18 +184,18 @@ export async function updateContact(contactData) {
 
 export async function fetchContactById(id) {
   try {
-    
+
     const response = await fetch(`${API_URL}/${id}`);
-    
+
     if (!response.ok) {
       throw new FetchError({
         codigo: response.status.toString(),
         descripcion: erroresHTTP[response.status] || erroresHTTP.default
       });
     }
-    
+
     const contactoApi = await response.json();
-    const contactoFinal={
+    const contactoFinal = {
       id: contactoApi.id,
       nombre: contactoApi.fullname,
       telefono: contactoApi.phonenumber,
@@ -195,7 +208,7 @@ export async function fetchContactById(id) {
       favorito: false
     }
     return contactoFinal;
-    
+
   } catch (error) {
     if (!(error instanceof FetchError)) {
       throw new FetchError({

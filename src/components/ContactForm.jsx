@@ -1,6 +1,10 @@
 import { useState, useRef } from "react";
 import { notyf } from "../utils/notificacion";
 import Modali, { useModali } from 'modali';
+import PhoneInput from "./PhoneInput";
+import { validarTelefonoPorTexto, obtenerISODesdeTelefono } from "../utils/validacionTelefono";
+import { phoneDescriptions } from "../utils/PhoneDescriptions";
+
 
 function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual = null }) {
 
@@ -18,16 +22,25 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
     const inputNombreRef = useRef(null); // referencia para el input
 
 
+    function obtenerDescripcionTelefono(valor) {
+        const iso = obtenerISODesdeTelefono(valor);
+        const datos = phoneDescriptions.find(p => p.iso === iso);
+        return datos?.description ?? 'Formato de número no reconocido para este país.';
+    }
+
+
     //Si tiene valor retorna true 
     function validaRequerido(valor) {
         return valor.trim() !== '';
     }
 
+
     //Si cumple con el formato de telefono,retorna true
     function validarTelefono(valor) {
-        const limpio = valor.replace(/\D/g, "");
-        return valor.trim() && /^9\d{8}$/.test(limpio);
+        
+        return validarTelefonoPorTexto(valor);
     }
+
 
     //Si cumple con el formato de correo,retorna true
     function validarCorreo(valor) {
@@ -41,8 +54,9 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
             newErrors.telefono = 'El teléfono es requerido'
         } else {
             if (!validarTelefono(formData.telefono)) {
-                newErrors.telefono = 'El número debe tener 9 dígitos y comenzar con 9.'
+                newErrors.telefono = obtenerDescripcionTelefono(formData.telefono);
             }
+
         }
         if (!validaRequerido(formData.relacion)) newErrors.relacion = 'La relacion con el contacto es requerido';
         if (!validaRequerido(formData.correo)) {
@@ -145,7 +159,7 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
         if (modoForm === "editar") {
             if (comparadorDatos()) {
                 toggleModalConfirmarEdicion(); // 🟢 mostrar modal
-            }else{
+            } else {
                 onRegistrarContacto(formData, false);
             }
         } else {
@@ -236,8 +250,8 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                         </div>
                     )}
                 </div>
-
-                <div className="flex flex-col gap-2">
+                {/*
+                  <div className="flex flex-col gap-2">
                     <label className="font-semibold text-text-label">
                         Telefono<span className="text-secondary-red">*</span>
                     </label>
@@ -255,7 +269,13 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                         </div>
                     )}
                 </div>
-                <div className="flex flex-col gap-2">
+                */}
+
+                <PhoneInput
+                    formData={formData}
+                    setFormData={handleCambios}
+                    errors={errors}
+                />                <div className="flex flex-col gap-2">
                     <label className="font-semibold text-text-label">
                         Correo<span className="text-secondary-red">*</span>
                     </label>
@@ -293,7 +313,7 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                 </div>
                 */}
             </form>
-            <div className="mt-6  flex justify-between">
+            <div className="mt-10  flex justify-between">
                 <button form="formContact" type="reset" onClick={limpiarFormulario} className="bg-white font-bold text-center rounded-md hover:bg-secondary-red hover:text-white text-secondary-red px-4 py-2 border border-secondary-red">Limpiar formulario</button>
                 <button form="formContact" type="submit" className="bg-white font-bold text-center rounded-md px-4 py-2 border border-secondary-green text-secondary-green hover:bg-secondary-green hover:text-black">{modoForm == "crear" ? "Agregar contacto" : "Actualizar contacto"}</button>
             </div>

@@ -20,7 +20,7 @@ function Navigation() {
   const navItems = [
     { path: "/", label: "Inicio" },
     { path: "/contactos", label: "Contactos" },
-    { path: "/nosotros", label: "Nosotros" }
+    { path: "/sobremi", label: "Sobre mi" }
   ];
 
   return (
