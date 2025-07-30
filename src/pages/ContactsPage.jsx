@@ -17,6 +17,7 @@ import { FetchError } from '../utils/FetchError.js';
 import SplashScreen from '../components/SplashScreen.jsx';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { guardarContactosEnLocalStorage,cargarContactosDesdeLocalStorage } from '../utils/localStorageManager.js';
 
 // Componente SkeletonCard que replica la estructura de ContactCard
 function SkeletonCard() {
@@ -91,8 +92,25 @@ function ContactsPage() {
     }
   }
 
+  async function sincronizarContactosConAPI() {
+    try {
+      setOperationLoading(true);
+      const contactosDesdeAPI = await fetchContacts();
+      setContacto(contactosDesdeAPI); // Actualiza la app
+      guardarContactosEnLocalStorage(contactosDesdeAPI); // Guarda en localStorage
+      notyf.success(`🔄 Sincronización exitosa: ${contactosDesdeAPI.length} contactos cargados.`);
+    } catch (error) {
+      notyf.error("❌ No se pudieron sincronizar los contactos.");
+      console.error("Error en sincronización:", error);
+    } finally {
+      setOperationLoading(false);
+    }
+  }
+
+
   useEffect(() => {
-    getContacts();
+    //getContacts();
+    setLoading(false);
   }, []);
 
   const [estadoModal, setModalEstado] = useState(false)
@@ -383,6 +401,13 @@ function ContactsPage() {
     }
   }
 
+  function cargarDesdeLocalStorage(){
+    const contactosLS=cargarContactosDesdeLocalStorage()
+    if(contactosLS.length > 0){
+      setContacto(contactosLS);
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       {loading ? (
@@ -408,6 +433,9 @@ function ContactsPage() {
                     {/*<BotonAllFavorite onAction={todosFavoritos} />*/}
 
                     <BotonAddContacto onAction={abrirModalCrear} />
+                    <button onClick={()=>guardarContactosEnLocalStorage(contactosFiltrados)} type="button" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-md text-sm px-5 py-2.5 text-center me-2">Guardar Contactos</button>
+                    <button onClick={cargarDesdeLocalStorage} type="button" class="text-gray-900 bg-gradient-to-r from-red-200 via-red-300 to-yellow-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400 font-medium rounded-md text-sm px-5 py-2.5 text-center me-2">Cargar Contactos</button>
+                    <button onClick={sincronizarContactosConAPI} type="button" class="text-gray-900 bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 font-medium rounded-md text-sm px-5 py-2.5 text-center me-2">Sincronizar Datos</button>
                   </div>
                 </div>
                 <SearchContactInput valorSearch={searchEstado} onSearch={manejadorSearch} />

@@ -91,3 +91,32 @@ export const managerls = localStorageManager();
 //managerls = manager;
 
 //localStorage.clear();
+
+
+export function guardarContactosEnLocalStorage(contactos) {
+  try {
+    localStorage.setItem("misContactos", JSON.stringify(contactos));
+    notyf.success("Contactos guardados en el LocalStorage");
+  } catch (error) {
+    notyf.error("Error al guardar contactos en el LocalStorage")
+    console.log(error);
+  }
+}
+
+
+export function cargarContactosDesdeLocalStorage() {
+  try {
+    const data = localStorage.getItem("misContactos");
+    if (!data) {
+      notyf.success("No se encontraron contactos guardados");
+      return [];
+    }
+    const contactos = JSON.parse(data);
+    notyf.success("Contactos cargados desde el navegador.");
+    return contactos;
+  } catch (error) {
+    console.error("❌ Error al cargar contactos:", error);
+    notyf.error("No se pudieron cargar los contactos.")
+    return [];
+  }
+}
