@@ -372,9 +372,10 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 * El enfoque sigue el patrón **load → success → error**, reforzando la confianza del usuario con **retroalimentación constante**.
 * La gestión de errores se encapsula dentro de los servicios (`try/catch`) y se comunica hacia los componentes de forma controlada para renderizar la UI adecuada.
 
+
 #### 👉 Resultado para el Usuario:
 
-> Ya no necesito ir a la lista de contactos, buscar manualmente entre tarjetas y hacer clic. Desde cualquier parte de la app, puedo escribir "ana" o "+51 9" y en segundos ver el contacto y entrar a su detalle con solo un clic.
+> Ya no me quedo viendo una pantalla vacía o confundido cuando algo tarda. Si hay un problema, la app me lo dice con claridad y me da opciones para solucionarlo.
 
 
 ## 📌 Cómo ejecutar
