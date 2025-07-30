@@ -102,6 +102,7 @@ function ContactsPage() {
   const [searchEstado, setSearch] = useState("");
   const [contactoAEditar, setContactoAEditar] = useState(null);
 
+ 
   const textoBuscado = searchEstado.trim().toLowerCase();
 
   const contactosFiltrados = estadoContactos
@@ -168,6 +169,7 @@ function ContactsPage() {
       return nuevaLista;
     });
   }
+
 
   function todosFavoritos() {
     if (estadoContactos.length) {

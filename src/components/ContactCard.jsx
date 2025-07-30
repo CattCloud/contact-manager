@@ -13,10 +13,17 @@ export default function ContactCard({ contacto, onFavorite, onVerContacto, searc
         navigate(`/contacto/${id}`);
     };
 
+    function escaparRegExp(texto) {
+        return texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+
     function resaltar(texto) {
         if (!search) return texto;
 
-        const partes = texto.split(new RegExp(`(${search})`, 'gi'));
+        const safeSearch = escaparRegExp(search); // Escapa caracteres especiales
+        const partes = texto.split(new RegExp(`(${safeSearch})`, 'gi'));
+
         return partes.map((parte, i) =>
             parte.toLowerCase() === search.toLowerCase() ? (
                 <span key={i} className="bg-yellow-200 font-semibold">{parte}</span>
@@ -25,6 +32,8 @@ export default function ContactCard({ contacto, onFavorite, onVerContacto, searc
             )
         );
     }
+
+
 
     return (
         <div
