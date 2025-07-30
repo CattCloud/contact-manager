@@ -140,9 +140,6 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - App publicada en línea con una URL funcional: accesible para revisión, demostración o portafolio.
 
 
-
-
-
 ## Tecnologías y Librerías Utilizadas
 
 - ⚛️ React (Hooks: `useState`, `useEffect`)
@@ -151,18 +148,29 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - 🧩 Notyf para notificaciones interactivas
 - 🤖 GitHub como repositorio
 - 🎮 Modali , para mensajes de confirmacion
-  
+- ☁  Netlify, como herramienta deploy 
      
 ## Screenshots de la aplicación
 
-### Interfaz principal
-<img width="1365" height="643" alt="image" src="https://github.com/user-attachments/assets/d0e62c61-4b49-4ab2-a4c2-522725c8b0a3" />
+### Pagina Principal
+<img width="1351" height="680" alt="image" src="https://github.com/user-attachments/assets/0c93bbee-b305-4790-ac00-5a6e0b42fac7" />
 
-### Modal Nuevo Contacto
+
+### Modal Nuevo y Editar Contacto
 <img width="1365" height="645" alt="image" src="https://github.com/user-attachments/assets/c699b6f5-2940-46e9-8550-6dac242faeb4" />
 
-### Modal Editar Contacto
-<img width="1365" height="645" alt="image" src="https://github.com/user-attachments/assets/5a605d72-11be-4da6-a02c-ee2174834bd8" />
+### Pagina Lista de Contactos
+<img width="1352" height="677" alt="image" src="https://github.com/user-attachments/assets/fead75bb-2216-4914-b318-2618ea8c6a18" />
+
+### Pagina Detalle de Contacto
+<img width="1362" height="679" alt="image" src="https://github.com/user-attachments/assets/b9eff7df-d350-4054-8707-ff11cce29503" />
+
+### Pagina About Me
+<img width="1350" height="680" alt="image" src="https://github.com/user-attachments/assets/eb199f5a-c299-407f-925b-70ff5986b638" />
+
+
+### Splash Screen
+<img width="1365" height="678" alt="image" src="https://github.com/user-attachments/assets/e3ccd682-a549-43b9-86fe-9f819651a3e7" />
 
 
 ## ⚙️ Decisiones Técnicas y Patrones Aplicados
@@ -220,6 +228,153 @@ Esta versión del Contact Manager incluye diversas funcionalidades diseñadas pa
 - Componentes como ContactoDetalle y ListContacts ajustan su distribución en pantallas medianas o pequeñas, apilando el contenido y manteniendo legibilidad.
 - Inputs, botones y modales se escalan correctamente sin romper el diseño, respetando márgenes, paddings y visual hierarchy.
 - Animaciones y estados de interacción (hover, focus, scale) fueron calibrados para funcionar tanto en táctiles como en escritorio.
+
+
+## ✅ Historias de Usuario implementadas
+###  Historia de Usuario 01: Gestión Internacional de Teléfonos con Detección y Validación Inteligente
+
+**Como** usuario que guarda contactos de distintos países,
+**quiero** poder seleccionar el país y validar el número telefónico correctamente,
+**para** asegurarme de que todos mis contactos estén bien escritos, sean válidos y saber de qué país proviene cada uno.
+
+
+#### 👉 Criterios de Aceptación
+
+1. **Selector claro de país con prefijo automático:**
+
+   * Al registrar o editar un contacto, quiero poder elegir el país desde un menú con nombre, bandera y código telefónico (como +51 para Perú).
+   * Quiero que el número se inicie automáticamente con ese código y que no pueda borrarlo por error.
+
+2. **Validación en tiempo real del número:**
+
+   * Mientras escribo el número, quiero que la app me diga si es válido o no.
+   * Si ingreso un número incorrecto, espero un mensaje claro que me explique por qué no es válido.
+
+3. **Vista enriquecida del teléfono:**
+
+   * Quiero ver el teléfono de mis contactos bien formateado, con información como:
+
+     * Bandera del país
+     * Código de país
+     * Si es móvil o fijo
+     * Formato nacional correcto
+   * No quiero adivinar si un número es válido ni de qué país es.
+
+4. **Enriquecimiento automático de contactos existentes:**
+
+   * Al abrir la app, quiero que incluso los contactos traídos desde la API ya tengan su información telefónica formateada y completa, sin que yo tenga que corregir nada.
+
+#### 👉 Aspectos Técnicos Clave:
+
+* Se creó una función `normalizarTelefono()` que:
+  * Limpia y formatea el número
+  * Determina el país (ISO, nombre, bandera, dialCode)
+  * Evalúa si es válido, móvil o fijo
+  * Genera una descripción basada en metadatos (por ejemplo: "Móvil en España, formato nacional: 612 34 56 78").
+* Se usa `parsePhoneNumberWithError` y `isValidPhoneNumber` de `libphonenumber-js/max` para detección y validación precisa.
+* Se creó `procesarContactosAPI()` para enriquecer automáticamente todos los teléfonos traídos desde la API antes de mostrarlos.
+* El selector de país reutiliza `country-list-with-dial-code-and-flag` filtrando duplicados y destacando los países principales por código.
+* El sistema es **escalable y mantenible**, permitiendo añadir nuevas reglas o excepciones sin romper la funcionalidad base.
+* Todo el flujo respeta los principios de React: estado controlado con `useState`, memorias con `useMemo`, efectos secundarios con `useEffect`, y referencias DOM con `useRef`.
+
+#### 👉 Resultado para el Usuario
+
+> Cuando agrego un nuevo contacto, la app me guía para seleccionar el país y me ayuda a escribir el número correctamente. Además, al ver mi lista, todos los teléfonos están bien escritos, con su bandera y código. Sé que están correctos y a qué país pertenecen.
+
+---
+###  Historia de Usuario 02: Búsqueda Rápida de Contactos desde Cualquier Parte de la App
+
+**Como** usuario que necesita encontrar contactos con frecuencia,
+**quiero** tener una barra de búsqueda accesible desde cualquier página,
+**para** poder encontrar rápidamente a una persona sin tener que navegar por toda la app.
+
+
+#### 👉 Criterios de Aceptación
+
+1. **Buscador visible en todas las páginas:**
+
+   * Quiero tener acceso a un campo de búsqueda desde la cabecera sin importar en qué parte de la aplicación me encuentre (inicio, contactos, sobre mí, etc.).
+
+2. **Resultados en tiempo real:**
+
+   * Mientras escribo, quiero que la app me muestre coincidencias en tiempo real, tanto por nombre como por número.
+
+3. **Acceso directo al detalle:**
+
+   * Si encuentro al contacto que busco, quiero poder hacer clic en él y que me lleve directamente a su ficha, sin tener que pasar por la lista completa.
+
+4. **Diseño accesible y claro:**
+
+   * Quiero que el buscador funcione bien en celular y computadora, que sea fácil de usar y que se cierre automáticamente cuando hago clic fuera de él.
+   * Si no hay coincidencias, quiero un mensaje amable que me diga que no se encontró nada.
+
+5. **Siempre actualizado:**
+
+   * Espero que los datos que se buscan estén siempre actualizados con los últimos contactos cargados desde la API.
+
+#### 👉 Justificación Técnica:
+
+* Se creó un componente reutilizable `SearchHeader` que recibe la lista de contactos como prop y muestra resultados filtrados en tiempo real.
+* Se utiliza `useState`, `useEffect`, `useRef` y `useNavigate` para manejar el estado del input, el renderizado de sugerencias y la navegación.
+* Se aplicaron principios de UX modernos:
+
+  * **Autocompletado**
+  * **Acciones contextuales**
+  * **Desempeño reactivo**
+* El diseño es completamente responsivo, adaptado a escritorio y móvil con Tailwind CSS.
+* La búsqueda es **tolerante a errores** y **case-insensitive**, permitiendo buscar por nombre parcial o número sin importar el formato.
+
+
+#### 👉 Resultado para el Usuario
+
+> Ahora puedo buscar un contacto desde cualquier página. Solo escribo su nombre o teléfono, y enseguida lo encuentro. Un clic y estoy viendo toda su información, sin pasos innecesarios.
+
+
+---
+
+###  Historia de Usuario 03: Visualización clara y confiable del estado de la app
+
+**Como** usuario de la Agenda de Contactos
+**Quiero** que la aplicación me informe claramente cuándo está cargando información o si ocurre algún error
+**Para** sentir confianza en que el sistema funciona correctamente y saber qué hacer si algo falla.
+
+
+#### 👉 Criterios de Aceptación
+
+1. **Carga inicial clara y visualmente amigable:**
+
+   * Cuando abro la app o una página dentro de ella, quiero ver una pantalla que me indique que la información se está cargando (pantalla completa de "cargando") en lugar de una pantalla en blanco.
+   * Esta pantalla debe ser visualmente agradable, transmitir que todo está en marcha y desaparecer cuando se hayan cargado los datos.
+
+2. **Interacciones individuales con retroalimentación clara:**
+
+   * Si estoy creando, editando o eliminando un contacto, quiero saber que la app está procesando la acción (mediante animaciones tipo "skeleton" que reemplazan temporalmente la lista).
+   * No quiero que la interfaz se congele o me deje preguntándome si algo se hizo o no.
+
+3. **Manejo de errores confiable y comprensible:**
+
+   * Si ocurre un error, quiero ver una pantalla amigable que me explique lo que pasó (por ejemplo, "No se pudo cargar la lista de contactos").
+   * Quiero que el mensaje me dé una posible solución, como volver a intentar con un botón.
+   * El mensaje debe estar redactado en un lenguaje que yo entienda, sin tecnicismos ni códigos crípticos.
+
+4. **Consistencia en toda la app:**
+
+   * Espero que todas las páginas de la app (inicio, contactos, detalle de contacto, sobre mí) manejen la carga y errores de la misma forma.
+   * Si algo falla, no quiero quedarme atrapado en un estado intermedio ni ver pantallas rotas.
+
+#### 👉 Justificación Técnica:
+
+* Se implementó una pantalla `ErrorScreen` reutilizable, con diseño propio, imagen SVG, y estilos suaves que guían al usuario con empatía.
+* Se definió una clase `FetchError` personalizada para capturar errores del `service layer` con estructura uniforme.
+* El estado `loading` se controla en cada componente clave (como `ContactList`, `ContactDetailPage`, etc.) y se representa visualmente mediante:
+  * Skeletons en lugar de loaders genéricos
+  * Pantalla completa para la carga inicial
+* El enfoque sigue el patrón **load → success → error**, reforzando la confianza del usuario con **retroalimentación constante**.
+* La gestión de errores se encapsula dentro de los servicios (`try/catch`) y se comunica hacia los componentes de forma controlada para renderizar la UI adecuada.
+
+#### 👉 Resultado para el Usuario:
+
+> Ya no necesito ir a la lista de contactos, buscar manualmente entre tarjetas y hacer clic. Desde cualquier parte de la app, puedo escribir "ana" o "+51 9" y en segundos ver el contacto y entrar a su detalle con solo un clic.
 
 
 ## 📌 Cómo ejecutar
