@@ -2,11 +2,12 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import CountryList from 'country-list-with-dial-code-and-flag';
 import { phoneDescriptions } from '../utils/PhoneDescriptions';
 
-function PhoneInput({ formData, setFormData, errors }) {
+function PhoneInput({ formData, setFormData, errors, contactoActual }) {
     const [countryCode, setCountryCode] = useState('+51'); // Perú por defecto
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState(''); // Estado para la búsqueda
-    const dropdownRef = useRef(null);
+    const [isOpen, setIsOpen] = useState(false); // Dropdown abierto/cerrado
+    const [searchTerm, setSearchTerm] = useState(''); // Término de búsqueda del país
+    const dropdownRef = useRef(null); // Referencia para manejar clics fuera del dropdown
+
 
     // Países principales por código de teléfono para resolver duplicados
     const paisesprincipales = {
@@ -26,10 +27,10 @@ function PhoneInput({ formData, setFormData, errors }) {
 
     const countries = useMemo(() => {
         const allCountries = CountryList.getAll({ withSecondary: false });
-        
+
         // Crear un mapa para agrupar países por dial_code
         const countriesByDialCode = {};
-        
+
         allCountries.forEach(country => {
             const dialCode = country.dial_code;
             if (!countriesByDialCode[dialCode]) {
@@ -37,20 +38,20 @@ function PhoneInput({ formData, setFormData, errors }) {
             }
             countriesByDialCode[dialCode].push(country);
         });
-        
+
         // Para cada dial_code, elegir el país principal
         const uniqueCountries = [];
-        
+
         Object.keys(countriesByDialCode).forEach(dialCode => {
             const countriesWithSameCode = countriesByDialCode[dialCode];
-            
+
             if (countriesWithSameCode.length === 1) {
                 // Solo hay un país con este código
                 uniqueCountries.push(countriesWithSameCode[0]);
             } else {
                 // Hay múltiples países, elegir el principal
                 const paisPrincipal = paisesprincipales[dialCode];
-                
+
                 if (paisPrincipal) {
                     // Buscar el país principal en la lista
                     const countryPrincipal = countriesWithSameCode.find(c => c.code === paisPrincipal);
@@ -70,10 +71,11 @@ function PhoneInput({ formData, setFormData, errors }) {
                 }
             }
         });
-        
+
         // Ordenar alfabéticamente por nombre
         return uniqueCountries.sort((a, b) => a.name.localeCompare(b.name));
     }, []);
+
 
     // Filtrar países basado en el término de búsqueda - BÚSQUEDA PRECISA
     const filteredCountries = useMemo(() => {
@@ -111,11 +113,14 @@ function PhoneInput({ formData, setFormData, errors }) {
         }
     }, [isOpen]);
 
+
     useEffect(() => {
-        const prefijoInicial = countryCode; // "+51", por defecto
+        const telefonoYaViene = contactoActual?.telefono;
+        if (telefonoYaViene) return; // Ya hay número válido
+
+        const prefijoInicial = countryCode;
         const telefonoActual = formData.telefono || "";
 
-        // Solo actualizar si el campo está vacío o no tiene prefijo
         if (!telefonoActual.startsWith(prefijoInicial)) {
             setFormData({
                 target: {
@@ -124,8 +129,14 @@ function PhoneInput({ formData, setFormData, errors }) {
                 }
             });
         }
-    }, []);
+    }, [contactoActual, countryCode]);
 
+    useEffect(() => {
+        if (!contactoActual?.telefonoInfo?.dialCode) return;
+        setCountryCode(contactoActual.telefonoInfo.dialCode); // 
+    }, [contactoActual]);
+
+    //Manejar seleccion de pais
     function handleCountryChange(c) {
         const prefijo = c.dial_code;       // "+34"
         setCountryCode(prefijo);           // para uso interno
@@ -134,7 +145,7 @@ function PhoneInput({ formData, setFormData, errors }) {
         const syntheticEvent = {
             target: {
                 name: 'telefono',
-                value: `${prefijo} `           // 👈 prefijo listo para que el usuario agregue número
+                value: `${prefijo} `           // prefijo listo para que el usuario agregue número
             }
         };
 
@@ -161,6 +172,7 @@ function PhoneInput({ formData, setFormData, errors }) {
         });
     }
 
+    //Manejar cambio de numeros
     function handleCambios(e) {
         const valor = e.target.value;
 
@@ -176,9 +188,9 @@ function PhoneInput({ formData, setFormData, errors }) {
             }
         });
     }
-
+    //Busca el codigo del pais
     const phoneHint = phoneDescriptions.find(p => p.iso === countryISO);
-    
+
     return (
         <div className="flex flex-col gap-2 relative w-full" ref={dropdownRef}>
             <label className="font-semibold text-text-label">
@@ -266,7 +278,7 @@ function PhoneInput({ formData, setFormData, errors }) {
                         </div>
                     )}
                 </div>
-                
+
                 {/* Campo telefónico - Responsive */}
                 <input
                     type="tel"
@@ -281,14 +293,14 @@ function PhoneInput({ formData, setFormData, errors }) {
           `}
                 />
             </div>
-            
+
             {phoneHint && !errors.telefono && (
                 <p className="text-xs text-gray-600 mt-1 items-start gap-1 flex flex-col">
                     <span>{phoneHint.description}</span>
                     <span>{phoneHint.formato}</span>
                 </p>
             )}
-            
+
             {/* Error visual */}
             {errors.telefono && (
                 <div className="text-secondary-red flex items-center mt-0.5 gap-2">

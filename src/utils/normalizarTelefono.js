@@ -8,90 +8,97 @@ import { phoneDescriptions } from './PhoneDescriptions';
  * @param {string} paisPorDefecto - Código ISO del país por defecto (default: 'PE')
  * @returns {Object} Objeto con información enriquecida del teléfono
  */
-export function normalizarTelefono(numeroTelefono, paisPorDefecto = 'PE') {
-  const resultadoPorDefecto = {
-    telefonoOriginal: numeroTelefono,
-    telefonoNormalizado: numeroTelefono,
-    telefonoFormateado: numeroTelefono,
-    telefonoNacional: numeroTelefono,
-    iso: paisPorDefecto,
-    dialCode: '+51',
-    pais: 'Peru',
-    bandera: `https://purecatamphetamine.github.io/country-flag-icons/3x2/${paisPorDefecto}.svg`,
-    formato: 'Formato no reconocido',
-    descripcion: 'Sin descripción disponible',
-    telefonoValido: false,
-    tipo: null,
-    esMovil: false,
-    esFijo: false,
-    error: null
-  };
-
-  try {
-    const numeroLimpio = limpiarNumeroTelefono(numeroTelefono);
-    if (!numeroLimpio) {
-      return {
-        ...resultadoPorDefecto,
-        error: 'Número vacío o contiene caracteres inválidos'
-      };
-    }
-
-    let numeroParseado;
+ function normalizarTelefono(numeroTelefono, paisPorDefecto = 'PE') {
+    const resultadoPorDefecto = {
+        telefonoOriginal: numeroTelefono,
+        telefonoNormalizado: numeroTelefono,
+        telefonoFormateado: numeroTelefono,
+        telefonoNacional: numeroTelefono,
+        iso: paisPorDefecto,
+        dialCode: '+51',
+        pais: 'Peru',
+        bandera: `https://purecatamphetamine.github.io/country-flag-icons/3x2/${paisPorDefecto}.svg`,
+        formato: 'Formato no reconocido',
+        descripcion: 'Sin descripción disponible',
+        telefonoValido: false,
+        tipo: null,
+        esMovil: false,
+        esFijo: false,
+        error: null
+    };
 
     try {
-      numeroParseado = parsePhoneNumberWithError(numeroLimpio);
-    } catch (error1) {
-      console.log(error1);
-      try {
-        numeroParseado = parsePhoneNumberWithError(numeroLimpio, paisPorDefecto);
-      } catch (error2) {
+        const numeroLimpio = limpiarNumeroTelefono(numeroTelefono);
+        if (!numeroLimpio) {
+            return {
+                ...resultadoPorDefecto,
+                error: 'Número vacío o contiene caracteres inválidos'
+            };
+        }
+
+        // Intentar parsear el número
+        let numeroParseado;
+
+        try {
+            // Primero intentar como número internacional
+            numeroParseado = parsePhoneNumberWithError(numeroLimpio);
+        } catch (error1) {
+            try {
+                // Verificar país válido (2 letras y está en la lista)
+                const isoValido = /^[A-Z]{2}$/.test(paisPorDefecto) &&
+                    CountryList.getAll().some(c => c.code === paisPorDefecto);
+
+                const paisFallback = isoValido ? paisPorDefecto : 'PE';
+
+                numeroParseado = parsePhoneNumberWithError(numeroLimpio, paisFallback);
+            } catch (error2) {
+                return {
+                    ...resultadoPorDefecto,
+                    error: `No se pudo interpretar el número: ${error2.message}`
+                };
+            }
+        }
+
+        if (!numeroParseado) {
+            return {
+                ...resultadoPorDefecto,
+                error: 'No se pudo parsear el número'
+            };
+        }
+
+        const esValido = numeroParseado.isValid();
+        const tipo = numeroParseado.getType?.();
+
+        const iso = numeroParseado.country || paisPorDefecto;
+        const codigoLlamada = `+${numeroParseado.countryCallingCode}`;
+        const paisInfo = CountryList.getAll().find(c => c.code === iso);
+        const nombrePais = paisInfo?.name || 'País desconocido';
+
+        const descripcionTelefono = phoneDescriptions.find(p => p.iso === iso);
+
         return {
-          ...resultadoPorDefecto,
-          error: `No se pudo interpretar el número: ${error2.message}`
+            telefonoOriginal: numeroTelefono,
+            telefonoNormalizado: numeroParseado.format('E.164'),
+            telefonoFormateado: numeroParseado.format('INTERNATIONAL'),
+            telefonoNacional: numeroParseado.format('NATIONAL'),
+            iso,
+            dialCode: codigoLlamada,
+            pais: nombrePais,
+            bandera: `https://purecatamphetamine.github.io/country-flag-icons/3x2/${iso}.svg`,
+            formato: descripcionTelefono?.formato || 'Formato no disponible',
+            descripcion: descripcionTelefono?.description || 'Descripción no disponible',
+            telefonoValido: esValido,
+            tipo: tipo || null,
+            esMovil: tipo === 'MOBILE',
+            esFijo: tipo === 'FIXED_LINE',
+            error: null
         };
-      }
+    } catch (error) {
+        return {
+            ...resultadoPorDefecto,
+            error: `Error inesperado: ${error.message}`
+        };
     }
-
-    if (!numeroParseado) {
-      return {
-        ...resultadoPorDefecto,
-        error: 'No se pudo parsear el número'
-      };
-    }
-
-    const esValido = numeroParseado.isValid();
-    const tipo = numeroParseado.getType?.();
-
-    const iso = numeroParseado.country || paisPorDefecto;
-    const codigoLlamada = `+${numeroParseado.countryCallingCode}`;
-    const paisInfo = CountryList.getAll().find(c => c.code === iso);
-    const nombrePais = paisInfo?.name || 'País desconocido';
-
-    const descripcionTelefono = phoneDescriptions.find(p => p.iso === iso);
-
-    return {
-      telefonoOriginal: numeroTelefono,
-      telefonoNormalizado: numeroParseado.format('E.164'),
-      telefonoFormateado: numeroParseado.format('INTERNATIONAL'),
-      telefonoNacional: numeroParseado.format('NATIONAL'),
-      iso,
-      dialCode: codigoLlamada,
-      pais: nombrePais,
-      bandera: `https://purecatamphetamine.github.io/country-flag-icons/3x2/${iso}.svg`,
-      formato: descripcionTelefono?.formato || 'Formato no disponible',
-      descripcion: descripcionTelefono?.description || 'Descripción no disponible',
-      telefonoValido: esValido,
-      tipo: tipo || null,
-      esMovil: tipo === 'MOBILE',
-      esFijo: tipo === 'FIXED_LINE',
-      error: null
-    };
-  } catch (error) {
-    return {
-      ...resultadoPorDefecto,
-      error: `Error inesperado: ${error.message}`
-    };
-  }
 }
 
 /**
@@ -100,19 +107,19 @@ export function normalizarTelefono(numeroTelefono, paisPorDefecto = 'PE') {
  * @returns {string} Número limpio
  */
 function limpiarNumeroTelefono(numero) {
-  if (!numero || typeof numero !== 'string') return '';
+    if (!numero || typeof numero !== 'string') return '';
 
-  let numeroLimpio = numero.trim();
+    let numeroLimpio = numero.trim();
 
-  // Eliminar todo lo que no sea dígito o +
-  numeroLimpio = numeroLimpio.replace(/[^\d+]/g, '');
+    // Eliminar todo lo que no sea dígito o +
+    numeroLimpio = numeroLimpio.replace(/[^\d+]/g, '');
 
-  // Si no comienza con + pero tiene más de 10 dígitos → probablemente internacional
-  if (!numeroLimpio.startsWith('+') && /^\d{10,}$/.test(numeroLimpio)) {
-    numeroLimpio = '+' + numeroLimpio;
-  }
+    // Si no comienza con + pero tiene más de 10 dígitos → probablemente internacional
+    if (!numeroLimpio.startsWith('+') && /^\d{10,}$/.test(numeroLimpio)) {
+        numeroLimpio = '+' + numeroLimpio;
+    }
 
-  return numeroLimpio;
+    return numeroLimpio;
 }
 
 /**
@@ -121,31 +128,36 @@ function limpiarNumeroTelefono(numero) {
  * @returns {Array} Contactos enriquecidos
  */
 export function procesarContactosAPI(contactos) {
-  return contactos.map(contacto => {
-    const telefonoEnriquecido = normalizarTelefono(contacto.telefono);
-
-    return {
-      ...contacto,
-      telefonoOriginal: contacto.telefono,
-      telefono: telefonoEnriquecido.telefonoNormalizado,
-      telefonoInfo: {
-        formateado: telefonoEnriquecido.telefonoFormateado,
-        nacional: telefonoEnriquecido.telefonoNacional,
-        iso: telefonoEnriquecido.iso,
-        dialCode: telefonoEnriquecido.dialCode,
-        pais: telefonoEnriquecido.pais,
-        bandera: telefonoEnriquecido.bandera,
-        formato: telefonoEnriquecido.formato,
-        descripcion: telefonoEnriquecido.descripcion,
-        valido: telefonoEnriquecido.telefonoValido,
-        tipo: telefonoEnriquecido.tipo,
-        esMovil: telefonoEnriquecido.esMovil,
-        esFijo: telefonoEnriquecido.esFijo,
-        error: telefonoEnriquecido.error
-      }
-    };
-  });
+    return contactos.map(contacto => {
+        return enriquecerTelefono(contacto)
+    });
 }
+
+
+export function enriquecerTelefono(contacto){
+    const telefonoEnriquecido = normalizarTelefono(contacto.telefono);
+    return {
+            ...contacto,
+            telefonoOriginal: contacto.telefono,
+            telefono: telefonoEnriquecido.telefonoNormalizado,
+            telefonoInfo: {
+                formateado: telefonoEnriquecido.telefonoFormateado,
+                nacional: telefonoEnriquecido.telefonoNacional,
+                iso: telefonoEnriquecido.iso,
+                dialCode: telefonoEnriquecido.dialCode,
+                pais: telefonoEnriquecido.pais,
+                bandera: telefonoEnriquecido.bandera,
+                formato: telefonoEnriquecido.formato,
+                descripcion: telefonoEnriquecido.descripcion,
+                valido: telefonoEnriquecido.telefonoValido,
+                tipo: telefonoEnriquecido.tipo,
+                esMovil: telefonoEnriquecido.esMovil,
+                esFijo: telefonoEnriquecido.esFijo,
+                error: telefonoEnriquecido.error
+            }
+    };
+}
+
 
 /**
  * Valida si un número es válido (formato aceptado)
@@ -154,12 +166,12 @@ export function procesarContactosAPI(contactos) {
  * @returns {boolean}
  */
 export function esNumeroValido(numeroTelefono, paisPorDefecto = 'PE') {
-  try {
-    return isValidPhoneNumber(numeroTelefono, paisPorDefecto);
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
+    try {
+        return isValidPhoneNumber(numeroTelefono, paisPorDefecto);
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
 }
 
 /**
@@ -168,11 +180,11 @@ export function esNumeroValido(numeroTelefono, paisPorDefecto = 'PE') {
  * @returns {string|null}
  */
 export function obtenerISODesdeTelefono(numeroTelefono) {
-  try {
-    const numeroParseado = parsePhoneNumberWithError(numeroTelefono);
-    return numeroParseado?.country || null;
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
+    try {
+        const numeroParseado = parsePhoneNumberWithError(numeroTelefono);
+        return numeroParseado?.country || null;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
 }

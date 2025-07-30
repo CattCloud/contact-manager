@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
 import { notyf } from "../utils/notificacion";
-import Modali, { useModali } from 'modali';
 import PhoneInput from "./PhoneInput";
 import { validarTelefonoPorTexto, obtenerISODesdeTelefono } from "../utils/validacionTelefono";
 import { phoneDescriptions } from "../utils/PhoneDescriptions";
-
+import ConfirmationModal from "../utils/modalEditar";
+import { useConfirmation } from "../utils/useConfirmation"; // 👈 Nuevo hook
 
 function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual = null }) {
 
@@ -18,9 +18,10 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
     );
 
     const [errors, setErrors] = useState({});
+    const inputNombreRef = useRef(null);
 
-    const inputNombreRef = useRef(null); // referencia para el input
-
+    // 🟢 Reemplazar useModali con nuestro hook personalizado
+    const [showConfirmation, confirmationModal] = useConfirmation();
 
     function obtenerDescripcionTelefono(valor) {
         const iso = obtenerISODesdeTelefono(valor);
@@ -28,21 +29,14 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
         return datos?.description ?? 'Formato de número no reconocido para este país.';
     }
 
-
-    //Si tiene valor retorna true 
     function validaRequerido(valor) {
         return valor.trim() !== '';
     }
 
-
-    //Si cumple con el formato de telefono,retorna true
     function validarTelefono(valor) {
-        
         return validarTelefonoPorTexto(valor);
     }
 
-
-    //Si cumple con el formato de correo,retorna true
     function validarCorreo(valor) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor.trim());
     }
@@ -56,7 +50,6 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
             if (!validarTelefono(formData.telefono)) {
                 newErrors.telefono = obtenerDescripcionTelefono(formData.telefono);
             }
-
         }
         if (!validaRequerido(formData.relacion)) newErrors.relacion = 'La relacion con el contacto es requerido';
         if (!validaRequerido(formData.correo)) {
@@ -66,8 +59,6 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                 newErrors.correo = 'El correo indicado no cumple con el formato de correo'
             }
         }
-
-
         return newErrors;
     }
 
@@ -78,7 +69,7 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
     function esCampoValido(nombreCampo, valor) {
         switch (nombreCampo) {
             case "nombre":
-                return validaRequerido(valor); // Si el valor es diferente de vacio entonces es true
+                return validaRequerido(valor);
             case "telefono":
                 return validarTelefono(valor);
             case "relacion":
@@ -92,8 +83,6 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
 
     function handleCambios(event) {
         const { name, value } = event.target;
-        //logica para los errores renderizados en tiempo real
-        //Si hay errores
         if (errors[name]) {
             let esValido = false;
             switch (name) {
@@ -116,49 +105,35 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
             }
         }
 
-        // Usar spread operator para actualizar estado inmutablemente
         setFormData({ ...formData, [name]: value });
     }
 
+    // 🟢 Nuevas funciones para el modal personalizado
     function confirmarEdicion() {
-        toggleModalConfirmarEdicion();
         onRegistrarContacto(formData, true);
     }
 
-    function cancelarEdicion() {
-        toggleModalConfirmarEdicion();
+    function mostrarConfirmacionEdicion() {
+        showConfirmation({
+            title: 'Confirmar edición',
+            message: `¿Deseas actualizar el contacto "${formData.nombre}"?`,
+            onConfirm: confirmarEdicion,
+            onCancel: () => {} // No hacer nada al cancelar
+        });
     }
-
-    const [modalConfirmarEdicion, toggleModalConfirmarEdicion] = useModali({
-        animated: true,
-        title: 'Confirmar edición',
-        message: `¿Deseas actualizar el contacto "${formData.nombre}"?`,
-        buttons: [
-            <Modali.Button
-                label="Cancelar"
-                isStyleCancel
-                onClick={cancelarEdicion}
-            />,
-            <Modali.Button
-                label="Confirmar"
-                isStyleDestructive
-                onClick={confirmarEdicion}
-            />
-        ]
-    });
-
 
     function handleSubmit(e) {
         e.preventDefault();
         const formErrors = validateForm();
         if (Object.keys(formErrors).length > 0) {
             setErrors(formErrors);
-            return; // No continuar si hay errores
+            return;
         }
-        setErrors({}); //Si no hay errores se limpian
+        setErrors({});
+        
         if (modoForm === "editar") {
             if (comparadorDatos()) {
-                toggleModalConfirmarEdicion(); // 🟢 mostrar modal
+                mostrarConfirmacionEdicion(); // 🟢 Usar nuevo modal
             } else {
                 onRegistrarContacto(formData, false);
             }
@@ -167,33 +142,26 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
         }
     }
 
-
     function limpiarFormulario() {
-        setFormData(
-            {
-                nombre: "",
-                telefono: "",
-                correo: "",
-                relacion: ""
-            }
-        )
+        setFormData({
+            nombre: "",
+            telefono: "",
+            correo: "",
+            relacion: ""
+        });
         notyf.success("Formulario limpio");
         setTimeout(() => {
             inputNombreRef.current?.focus();
         }, 0);
-
     }
 
-    //Objetivo: Saber si se edito un contacto
     function comparadorDatos() {
         const { nombre, telefono, correo, relacion } = contactoActual;
-        //Si son diferentes lo valores retorna true
         if (formData.nombre != nombre || formData.telefono != telefono || formData.correo != correo || formData.relacion != relacion) {
             return true
         }
         return false;
     }
-
 
     return (
         <>
@@ -206,8 +174,8 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                     ></div>
                 </div>
             </div>
-
             <form id="formContact" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+
                 <div className="flex flex-col gap-2">
                     <label className="font-semibold text-text-label">
                         Nombre<span className="text-secondary-red">*</span>
@@ -275,7 +243,9 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                     formData={formData}
                     setFormData={handleCambios}
                     errors={errors}
-                />                <div className="flex flex-col gap-2">
+                    contactoActual={contactoActual}
+                />
+                <div className="flex flex-col gap-2">
                     <label className="font-semibold text-text-label">
                         Correo<span className="text-secondary-red">*</span>
                     </label>
@@ -313,11 +283,18 @@ function ContactForm({ onRegistrarContacto, modoForm = "crear", contactoActual =
                 </div>
                 */}
             </form>
-            <div className="mt-10  flex justify-between">
-                <button form="formContact" type="reset" onClick={limpiarFormulario} className="bg-white font-bold text-center rounded-md hover:bg-secondary-red hover:text-white text-secondary-red px-4 py-2 border border-secondary-red">Limpiar formulario</button>
-                <button form="formContact" type="submit" className="bg-white font-bold text-center rounded-md px-4 py-2 border border-secondary-green text-secondary-green hover:bg-secondary-green hover:text-black">{modoForm == "crear" ? "Agregar contacto" : "Actualizar contacto"}</button>
+            
+            <div className="mt-10 flex justify-between">
+                <button form="formContact" type="reset" onClick={limpiarFormulario} className="bg-white font-bold text-center rounded-md hover:bg-secondary-red hover:text-white text-secondary-red px-4 py-2 border border-secondary-red">
+                    Limpiar formulario
+                </button>
+                <button form="formContact" type="submit" className="bg-white font-bold text-center rounded-md px-4 py-2 border border-secondary-green text-secondary-green hover:bg-secondary-green hover:text-black">
+                    {modoForm == "crear" ? "Agregar contacto" : "Actualizar contacto"}
+                </button>
             </div>
-            <Modali.Modal {...modalConfirmarEdicion} />
+
+            {/* 🟢 Reemplazar Modali.Modal con nuestro modal personalizado */}
+            <ConfirmationModal {...confirmationModal} />
         </>
     );
 }

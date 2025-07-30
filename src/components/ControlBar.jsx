@@ -7,10 +7,11 @@ function ControlBar({ onAction,filtroActivo,cantidadFavoritos,cantidadContactos 
             <button className={filtroActivo==="todos"?btn_enabled:btn_disabled} onClick={() => onAction("todos")}>
                 {`Todos (${cantidadContactos})`}
             </button>
-            <button className={filtroActivo==="favoritos"?btn_enabled:btn_disabled} onClick={() => onAction("favoritos")}>
+            {/*            <button className={filtroActivo==="favoritos"?btn_enabled:btn_disabled} onClick={() => onAction("favoritos")}>
                 {`Favoritos (${cantidadFavoritos})`}
             </button>
-            
+            */}
+
         </div>
     );
 }

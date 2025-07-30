@@ -146,7 +146,7 @@ function Navigation() {
       </div>
 
       {/* Estilos CSS para animaciones personalizadas */}
-      <style jsx>{`
+      <style>{`
         @keyframes slideInFromRight {
           from {
             opacity: 0;

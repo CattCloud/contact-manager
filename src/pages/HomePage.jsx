@@ -3,8 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import phone from "../assets/phone.png";
+import SplashScreen from '../components/SplashScreen.jsx';
+import { fetchContacts } from '../services/contactService.js';
+import { FetchError } from '../utils/FetchError.js';
+import ErrorScreen from '../components/ErrorScreen.jsx';
+
 
 function HomePage() {
+
+  const [loading, setLoading] = useState(true); // Spinner activo
+  const [error, setError] = useState(null);
+  const [estadoContactos, setContacto] = useState(
+    []
+  );
 
   const navigate = useNavigate();
   const [animatedStats, setAnimatedStats] = useState({
@@ -12,6 +23,30 @@ function HomePage() {
     categories: 0,
     searches: 0
   });
+
+  
+  
+  async function getContacts() {
+      try {
+        setLoading(true);
+        const contactos = await fetchContacts();
+        setContacto(contactos);
+        //console.log(contactos);
+        //notyf.success(`${contactos.length} contactos cargados`);
+      } catch (error) {
+        if (error instanceof FetchError) {
+          setError({ codigo: error.codigo, descripcion: error.message });
+        } else {
+          setError({ codigo: "500", descripcion: "Error inesperado. Revisa tu conexión o intenta más tarde." });
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+  
+    useEffect(() => {
+      getContacts();
+    }, []);
 
 
   // Animación de contadores al cargar
@@ -30,6 +65,11 @@ function HomePage() {
   const manejarClick = () => {
     navigate("contactos");           // ejecuta la redirección
   };
+
+    const manejarClick2 = () => {
+    navigate("sobremi");           // ejecuta la redirección
+  };
+
 
   const features = [
     {
@@ -77,135 +117,145 @@ function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary">
-      {/* Header */}
-      <Header page="home" />
-      {/* Hero Section */}
-      <section className="flex-1 relative">
-        {/* Radial Gradient Background */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: `
+      {loading ? (
+        <SplashScreen />
+      ) : error ? (
+        <ErrorScreen codigo={error.codigo} descripcion={error.descripcion} />
+      ) : (
+          <>
+            <Header page="home" contactos={estadoContactos}/>
+
+            <section className="flex-1 relative">
+              {/* Radial Gradient Background */}
+              <div
+                className="absolute inset-0 z-0"
+                style={{
+                  background: `
             radial-gradient(
               125% 125% at 50% 100%,
               rgba(34, 197, 94, 0.25),
               transparent 65%
             )
           `,
-            filter: "blur(50px)",
-            backgroundRepeat: "no-repeat",
-          }}
-        />
+                  filter: "blur(50px)",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="text-center">
-            <div className="mb-8">
-              <div className="inline-flex items-center size-25 justify-center  mb-2">
-                <img src={phone} alt="Logo Agenda de Contactos" className='p-3' />
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-text-primary mb-6"> Bienvenido a tu
-              <span className="block text-secondary-green">Agenda Personal</span>
-            </h1>
-            <p className="text-lg md:text-xl text-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed"> Organiza, gestiona y mantén siempre cerca a las personas más importantes de tu vida. Una interfaz simple y poderosa para todos tus contactos. </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button onClick={manejarClick} className="bg-secondary-green hover:bg-green-600 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg" > Ver Mis Contactos
-              </button>
-              <button className="bg-white hover:bg-gray-50 text-text-primary font-semibold px-8 py-3 rounded-lg border border-border transition-all duration-200 shadow-lg"> Conocer Más </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              Funcionalidades Principales
-            </h2>
-            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-              Descubre todas las herramientas que tenemos para hacer más fácil la gestión de tus contactos
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-bg-primary p-6 rounded-xl border border-border hover:shadow-lg transition-all duration-300 hover:scale-105 group"
-              >
-                <div className={`${feature.color} mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  {feature.icon}
+              <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+                <div className="text-center">
+                  <div className="mb-8">
+                    <div className="inline-flex items-center size-25 justify-center  mb-2">
+                      <img src={phone} alt="Logo Agenda de Contactos" className='p-3' />
+                    </div>
+                  </div>
+                  <h1 className="text-4xl md:text-6xl font-bold text-text-primary mb-6"> Bienvenido a tu
+                    <span className="block text-secondary-green">Agenda Personal</span>
+                  </h1>
+                  <p className="text-lg md:text-xl text-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed"> Organiza, gestiona y mantén siempre cerca a las personas más importantes de tu vida. Una interfaz simple y poderosa para todos tus contactos. </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button  onClick={manejarClick} className="bg-secondary-green hover:bg-green-600 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer" > Ver Mis Contactos
+                    </button>
+                    <button onClick={manejarClick2} className="bg-white hover:bg-gray-50 text-text-primary font-semibold px-8 py-3 rounded-lg border border-border transition-all duration-200 shadow-lg cursor-pointer"> Conocer Más </button>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-text-primary mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-text-secondary leading-relaxed">
-                  {feature.description}
+              </div>
+            </section>
+
+            {/* Features Section */}
+            <section className="py-16 bg-white">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                    Funcionalidades Principales
+                  </h2>
+                  <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+                    Descubre todas las herramientas que tenemos para hacer más fácil la gestión de tus contactos
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {features.map((feature, index) => (
+                    <div
+                      key={index}
+                      className="bg-bg-primary p-6 rounded-xl border border-border hover:shadow-lg transition-all duration-300 hover:scale-105 group"
+                    >
+                      <div className={`${feature.color} mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                        {feature.icon}
+                      </div>
+                      <h3 className="text-xl font-semibold text-text-primary mb-3">
+                        {feature.title}
+                      </h3>
+                      <p className="text-text-secondary leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Stats Section */}
+            <section className="py-16 bg-bg-secondary">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                    Estadísticas de la Plataforma
+                  </h2>
+                  <p className="text-lg text-text-secondary">
+                    Números que demuestran la eficiencia de nuestro sistema
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="bg-white p-8 rounded-xl shadow-lg text-center border border-border">
+                    <div className="text-4xl md:text-5xl font-bold text-secondary-green mb-2">
+                      {animatedStats.contacts.toLocaleString()}+
+                    </div>
+                    <div className="text-lg font-semibold text-text-primary mb-2">Contactos Gestionados</div>
+                    <div className="text-text-secondary">Capacidad para miles de contactos</div>
+                  </div>
+                  <div className="bg-white p-8 rounded-xl shadow-lg text-center border border-border">
+                    <div className="text-4xl md:text-5xl font-bold text-secondary-blue mb-2">
+                      {animatedStats.categories}
+                    </div>
+                    <div className="text-lg font-semibold text-text-primary mb-2">Categorías Disponibles</div>
+                    <div className="text-text-secondary">Familia, Trabajo, Amigos y más</div>
+                  </div>
+                  <div className="bg-white p-8 rounded-xl shadow-lg text-center border border-border">
+                    <div className="text-4xl md:text-5xl font-bold text-secondary-purple mb-2">
+                      {animatedStats.searches.toLocaleString()}+
+                    </div>
+                    <div className="text-lg font-semibold text-text-primary mb-2">Búsquedas Realizadas</div>
+                    <div className="text-text-secondary">Búsqueda rápida y eficiente</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Call to Action Section */}
+            <section className="py-16 bg-white">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-6">
+                  ¿Listo para organizar tus contactos?
+                </h2>
+                <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
+                  Comienza ahora y experimenta la forma más eficiente de gestionar tu agenda personal
                 </p>
+                <button
+ onClick={manejarClick}
+                  className="bg-secondary-green hover:bg-green-600 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg cursor-pointer"
+                >
+                  Comenzar Ahora
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-bg-secondary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              Estadísticas de la Plataforma
-            </h2>
-            <p className="text-lg text-text-secondary">
-              Números que demuestran la eficiencia de nuestro sistema
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-xl shadow-lg text-center border border-border">
-              <div className="text-4xl md:text-5xl font-bold text-secondary-green mb-2">
-                {animatedStats.contacts.toLocaleString()}+
-              </div>
-              <div className="text-lg font-semibold text-text-primary mb-2">Contactos Gestionados</div>
-              <div className="text-text-secondary">Capacidad para miles de contactos</div>
-            </div>
-            <div className="bg-white p-8 rounded-xl shadow-lg text-center border border-border">
-              <div className="text-4xl md:text-5xl font-bold text-secondary-blue mb-2">
-                {animatedStats.categories}
-              </div>
-              <div className="text-lg font-semibold text-text-primary mb-2">Categorías Disponibles</div>
-              <div className="text-text-secondary">Familia, Trabajo, Amigos y más</div>
-            </div>
-            <div className="bg-white p-8 rounded-xl shadow-lg text-center border border-border">
-              <div className="text-4xl md:text-5xl font-bold text-secondary-purple mb-2">
-                {animatedStats.searches.toLocaleString()}+
-              </div>
-              <div className="text-lg font-semibold text-text-primary mb-2">Búsquedas Realizadas</div>
-              <div className="text-text-secondary">Búsqueda rápida y eficiente</div>
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* Footer */}
+            <Footer />
+          </>
 
-      {/* Call to Action Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-6">
-            ¿Listo para organizar tus contactos?
-          </h2>
-          <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
-            Comienza ahora y experimenta la forma más eficiente de gestionar tu agenda personal
-          </p>
-          <button
+        )
+      }
 
-            className="bg-secondary-green hover:bg-green-600 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
-          >
-            Comenzar Ahora
-          </button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <Footer />
 
     </div>
   );

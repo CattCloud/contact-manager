@@ -1,21 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
-const contactosMock = [
-  { id: 1, nombre: "María López", telefono: "+51 987654321" },
-  { id: 2, nombre: "Juan Pérez", telefono: "+51 912345678" },
-  { id: 3, nombre: "Lucía Ramos", telefono: "+51 955001122" }
-];
 
-export default function BuscadorDeContactos({ contactos = contactosMock }) {
+export default function BuscadorDeContactos({ contactos = [] }) {
   const [query, setQuery] = useState("");
   const [resultados, setResultados] = useState([]);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setMostrarDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleChange = (e) => {
     const valor = e.target.value;
     setQuery(valor);
 
     if (valor.trim().length === 0) {
+      setResultados([]);
+      setMostrarDropdown(false);
+      return;
+    }
+
+    // Verificar que contactos existe y es un array
+    if (!contactos || !Array.isArray(contactos)) {
       setResultados([]);
       setMostrarDropdown(false);
       return;
@@ -32,18 +51,21 @@ export default function BuscadorDeContactos({ contactos = contactosMock }) {
 
   const handleSeleccion = (contacto) => {
     console.log("Seleccionaste:", contacto);
-    setQuery(`${contacto.nombre} - ${contacto.telefono}`);
+    // Limpiar el estado del dropdown
+    setQuery("");
     setResultados([]);
     setMostrarDropdown(false);
+    // Navegar a la página de detalles del contacto
+    navigate(`/contacto/${contacto.id}`);
   };
 
   return (
-    <div className="max-w-lg relative">
+    <div className="w-full relative" ref={dropdownRef}>
       {/* Input con icono a la izquierda */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 flex items-center ps-3 pointer-events-none">
           <svg
-            className="size-5 text-text-label"
+            className="size-4 md:size-5 text-text-label"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -63,26 +85,33 @@ export default function BuscadorDeContactos({ contactos = contactosMock }) {
           onChange={handleChange}
           type="search"
           id="search-contact"
-          className="block w-full py-2 px-2 ps-10 text-sm text-text-primary border bg-white border-border-form rounded-md focus:ring-1 focus:outline-none focus:ring-hover-input focus:border-hover-input"
-          placeholder="Buscar por nombre, teléfono o favorito"
+          className="block w-full py-2 px-2 ps-8 md:ps-10 text-sm text-text-primary border bg-white border-border-form rounded-md focus:ring-1 focus:outline-none focus:ring-hover-input focus:border-hover-input transition-all duration-200"
+          placeholder="Buscar contacto..."
         />
       </div>
 
       {/* Lista desplegable de resultados */}
       {mostrarDropdown && (
-        <ul className="absolute top-full left-0 w-full mt-2 bg-white border border-border-form rounded-md shadow-md z-50">
+        <ul className="absolute top-full left-0 w-full mt-1 md:mt-2 bg-white border border-border-form rounded-md shadow-lg z-[9999] max-h-60 overflow-y-auto">
           {resultados.map((contacto) => (
             <li
               key={contacto.id}
               onClick={() => handleSeleccion(contacto)}
-              className="px-4 py-2 hover:bg-hover-input cursor-pointer"
+              className="px-3 md:px-4 py-2 md:py-3 hover:bg-border cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
             >
-              <p className="text-sm font-semibold text-text-primary">
+              <p className="text-sm font-semibold text-text-primary truncate">
                 {contacto.nombre}
               </p>
               <p className="text-xs text-text-label">{contacto.telefono}</p>
             </li>
           ))}
+          
+          {/* Mensaje cuando no hay resultados */}
+          {resultados.length === 0 && query.trim().length > 0 && (
+            <li className="px-3 md:px-4 py-3 text-sm text-text-label text-center">
+              No se encontraron contactos
+            </li>
+          )}
         </ul>
       )}
     </div>

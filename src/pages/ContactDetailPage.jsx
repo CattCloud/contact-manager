@@ -1,4 +1,4 @@
-import { fetchContactById, fetchContacts, deleteContact } from '../services/contactService.js';
+import { fetchContactById, fetchContacts, deleteContact, updateContact } from '../services/contactService.js';
 import { useState, useEffect } from 'react';
 import Header from '../components/Header'
 import Footer from '../components/Footer';
@@ -10,13 +10,20 @@ import { FetchError } from '../utils/FetchError.js';
 import { useParams } from 'react-router-dom';
 import { notyf } from '../utils/notificacion.jsx';
 import { useNavigate } from 'react-router-dom';
+import { ModalConfirmaccion } from "../utils/modalConfirmacion";
+import ModalView from '../components/ModalContact.jsx';
 
 
 function ContactDetailPage() {
     const [contact, setContacto] = useState({});
     const [loading, setLoading] = useState(true); // Spinner activo
     const [error, setError] = useState(null);
-
+    const [estadoContactos, setContactos] = useState(
+        //managerls.obtener()
+        []
+    );
+    const [estadoModal, setModalEstado] = useState(false)
+    const modoModal = "editar";
 
     const params = useParams();
 
@@ -29,8 +36,11 @@ function ContactDetailPage() {
         try {
             setLoading(true);
             const contacto = await fetchContactById(id);
-            //console.log(contacto);
             setContacto(contacto);
+            const contactos = await fetchContacts();
+            setContactos(contactos);
+            //console.log(contacto);
+
             //notyf.success(`Contacto Cargado`);
         } catch (error) {
             if (error instanceof FetchError) {
@@ -67,7 +77,9 @@ function ContactDetailPage() {
         });
     };
 
-
+    function cerrarModal() {
+        setModalEstado(false);
+    }
 
     const getInitials = (name) => {
         if (!name) return "??";
@@ -93,19 +105,23 @@ function ContactDetailPage() {
         setLoading(true);
         setError(null);
         try {
-            const contactos = await fetchContacts();
+            //const contactos = await fetchContacts();
             // Ordenar la lista por ID ascendente
-            const contactosOrdenados = contactos.sort((a, b) => a.id - b.id);
-            const indexActual = contactosOrdenados.findIndex(c => c.id === contact.id);
+            //const contactosOrdenados = contactos.sort((a, b) => a.id - b.id);
+            //const indexActual = contactosOrdenados.findIndex(c => c.id === contact.id);
             await deleteContact(contact.id);
-             if (indexActual < contactosOrdenados.length - 1) {
+            /*
+                if (indexActual < contactosOrdenados.length - 1) {
                 const siguiente = contactosOrdenados[indexActual + 1];
                 navigate(`/contacto/${siguiente.id}`);
             } else {
                 // Llegaste al final: opcional → volver al inicio
                 const primero = contactosOrdenados[0];
                 navigate(`/contacto/${primero.id}`);
-            }
+            } 
+            
+            */
+            navigate(`/contactos`);
             notyf.success("Contacto eliminado");
         } catch (error) {
             if (error instanceof FetchError) {
@@ -183,6 +199,74 @@ function ContactDetailPage() {
         }
     }
 
+    function validarDuplicado(contacto) {
+        const { id, nombre, telefono } = contacto;
+        const nombreNormalizado = nombre.trim().toLowerCase();
+        const telefonoLimpio = telefono.replace(/\D/g, "");
+        // Validar duplicado por nombre
+        const nombreDuplicado = estadoContactos.some(
+            (c) =>
+                c.id !== id && // 👈 excluye el mismo contacto
+                c.nombre.trim().toLowerCase() === nombreNormalizado
+        );
+        if (nombreDuplicado) {
+            notyf.error("Ya existe un contacto con ese nombre");
+            return false;
+        }
+        // Validar duplicado por teléfono
+        const telefonoDuplicado = estadoContactos.some(
+            (c) =>
+                c.id !== id && // 
+                c.telefono.replace(/\D/g, "") === telefonoLimpio
+        );
+        if (telefonoDuplicado) {
+            notyf.error("Ya existe un contacto con ese número de teléfono");
+            return false;
+        }
+        return true;
+    }
+
+
+    async function manejadorEditarContacto(contactoEditado, isEdit) {
+        if (!isEdit) {
+            cerrarModal();
+            notyf.open({
+                type: 'info',
+                message: 'No se modificó ningún valor del contacto.'
+            });
+            return;
+        }
+        if (!validarDuplicado(contactoEditado)) return;
+
+        try {
+            setLoading(true);
+            // Llamar al API para editar contacto
+            const contactoActualizado = await updateContact(contactoEditado);
+            // Actualizar estado
+            const nuevoEstado = estadoContactos.map((c) =>
+                c.id === contactoActualizado.id ? contactoActualizado : c
+            );
+            setContacto(nuevoEstado);
+            //managerls.guardar(nuevoEstado);
+            setContacto(contactoActualizado);
+            cerrarModal();
+            notyf.success("Contacto editado correctamente");
+        } catch (error) {
+            if (error instanceof FetchError) {
+                setError({ codigo: error.codigo, descripcion: error.message });
+            } else {
+                setError({ codigo: "500", descripcion: "Error inesperado. Revisa tu conexión o intenta más tarde." });
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function abrirModalEdicion() {
+        setModalEstado(true);
+    }
+
+
     return (
         <div className="min-h-screen bg-gray-100">
             {loading ? (
@@ -191,10 +275,10 @@ function ContactDetailPage() {
                 <ErrorScreen codigo={error.codigo} descripcion={error.descripcion} />
             ) : (
                 <>
-                    <Header page="home" />
+                    <Header page="home" contactos={estadoContactos} />
 
                     {/* Main Content */}
-                    <div className=" mx-auto csm:px-6 lg:px-8 py-6">
+                    <div className=" mx-auto csm:px-6 lg:px-8 px-4 py-6">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
                             <div className="lg:col-span-2 space-y-4">
@@ -226,7 +310,7 @@ function ContactDetailPage() {
                                             <div className="flex flex-wrap justify-center sm:justify-start gap-3">
                                                 <button
                                                     onClick={handleCall}
-                                                    className="flex items-center gap-2 border border-secondary-green hover:bg-secondary-green text-secondary-green hover:text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                                                    className="flex items-center gap-2 border cursor-pointer border-secondary-green hover:bg-secondary-green text-secondary-green hover:text-white px-4 py-2 rounded-lg font-medium transition-colors"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -235,7 +319,7 @@ function ContactDetailPage() {
                                                 </button>
                                                 <button
                                                     onClick={handleWhatsApp}
-                                                    className="flex items-center gap-2 bg-secondary-green hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                                                    className="flex items-center gap-2 cursor-pointer bg-secondary-green hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4">
                                                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.309" />
@@ -264,8 +348,15 @@ function ContactDetailPage() {
                                             </div>
                                             <div>
                                                 <p className="font-medium text-text-primary">Teléfono</p>
-                                                <p className="text-text-secondary">{contact.telefono}</p>
-                                            </div>
+                                                <div className="flex gap-2 justify-start items-center">
+                                                    <img
+                                                        src={contact.telefonoInfo?.bandera}
+                                                        alt={contact.telefonoInfo?.iso}
+                                                        className="w-5 h-4 rounded-sm"
+                                                    />
+                                                    <p className="text-text-secondary">{contact.telefono}</p>
+                                                </div>                                            </div>
+
                                         </div>
 
                                         {/* Email */}
@@ -327,7 +418,7 @@ function ContactDetailPage() {
                                 {/* Action Buttons */}
                                 {/* Tarjetas de acción */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="bg-white rounded-lg border border-border hover:border-blue-300 p-4 shadow-sm hover:shadow-md transition cursor-pointer">
+                                    <div onClick={abrirModalEdicion} className="bg-white rounded-lg border border-border hover:border-blue-300 p-4 shadow-sm hover:shadow-md transition cursor-pointer">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-blue-50 text-blue-600 rounded-md">
                                                 {/* Icono editar */}
@@ -343,20 +434,27 @@ function ContactDetailPage() {
                                         </div>
                                     </div>
 
-                                    <div onClick={manejadorEliminarContacto} className="bg-white rounded-lg border border-border hover:border-red-300 p-4 shadow-sm hover:shadow-md transition cursor-pointer">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-red-50 text-red-600 rounded-md">
-                                                {/* Icono eliminar */}
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                                </svg>
+                                    <ModalConfirmaccion
+                                        onAction={manejadorEliminarContacto}
+                                        contacto={contact}
+                                        triggerButton={(abrir) => (
+                                            <div onClick={abrir} className="bg-white rounded-lg border border-border hover:border-red-300 p-4 shadow-sm hover:shadow-md transition cursor-pointer">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-red-50 text-red-600 rounded-md">
+                                                        {/* Icono eliminar */}
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-text-primary">Eliminar Contacto</h4>
+                                                        {/* <p className="text-sm text-text-secondary">Elimina el contacto actual de la agenda.</p> */}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="font-semibold text-text-primary">Eliminar Contacto</h4>
-                                                {/* <p className="text-sm text-text-secondary">Elimina el contacto actual de la agenda.</p> */}
-                                            </div>
-                                        </div>
-                                    </div>
+                                        )}
+                                    />
+
                                 </div>
 
                                 {/* Metadata */}
@@ -387,7 +485,7 @@ function ContactDetailPage() {
                         <button
                             title='Contacto anterior'
                             onClick={irAlAnterior}
-                            className="hover:opacity-70 transition-opacity disabled:opacity-50"
+                            className="hover:opacity-70 transition-opacity disabled:opacity-50 cursor-pointer"
                             disabled={loading}
                         >
                             <svg className="size-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -402,7 +500,7 @@ function ContactDetailPage() {
                         <button
                             title='Contacto siguiente'
                             onClick={irAlSiguiente}
-                            className="hover:opacity-70 transition-opacity disabled:opacity-50"
+                            className="hover:opacity-70 transition-opacity disabled:opacity-50 cursor-pointer"
                             disabled={loading}
                         >
                             <svg className="size-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -415,6 +513,17 @@ function ContactDetailPage() {
                             </svg>
                         </button>
                     </div>
+
+
+                    <ModalView
+                        title={modoModal === "editar" ? "Editar Contacto" : "Nuevo Contacto"}
+                        isOpen={estadoModal}
+                        onClose={cerrarModal}
+                        contactoActual={contact}
+                        modo={modoModal}
+                        onAddContact={manejadorEditarContacto}
+                    />
+
                     <Footer />
                 </>
             )}

@@ -8,7 +8,7 @@ export function obtenerISODesdeTelefono(telefono) {
 }
 
 export function validarTelefonoPorTexto(telefono) {
-  console.log("cambio "+telefono)
+  //console.log("cambio "+telefono)
   
   if (!telefono || typeof telefono !== 'string') return false;
 
@@ -20,7 +20,7 @@ export function validarTelefonoPorTexto(telefono) {
     if (!phoneNumber || !phoneNumber.isValid()) return false;
 
     const type = phoneNumber.getType(); // ✅ ahora sí funcionará
-    console.log('🔍 Tipo detectado:', type); // deberías ver "MOBILE"
+    //console.log('🔍 Tipo detectado:', type); // deberías ver "MOBILE"
     
     return type === 'MOBILE' || type === 'FIXED_LINE_OR_MOBILE';
   } catch (error) {

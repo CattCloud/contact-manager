@@ -1,5 +1,5 @@
 import { FetchError } from "../utils/FetchError";
-import { procesarContactosAPI } from "../utils/normalizarTelefono";
+import { procesarContactosAPI,enriquecerTelefono } from "../utils/normalizarTelefono";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -86,8 +86,25 @@ export async function createContact(contactData) {
     //const data = await response.json();
 
 
-    const nuevoContacto = await response.json();
-    return nuevoContacto;
+    const contactoApi = await response.json();
+
+    const contactofinal={
+      id: contactoApi.id,
+      nombre: contactoApi.fullname,
+      telefono: contactoApi.phonenumber, // Teléfono original de la API
+      relacion: contactoApi.type,
+      correo: contactoApi.email,
+      direccion: contactoApi.company,
+      fechaCumple: contactoApi.birthday,
+      creado: contactoApi.createdAt,
+      actualizado: contactoApi.updatedAt,
+      favorito: false
+    }
+
+    
+
+    //console.log(enriquecerTelefono(contactofinal))
+    return enriquecerTelefono(contactofinal);
   } catch (error) {
     console.error("❌ Error al crear contacto:", error);
 
@@ -155,6 +172,7 @@ export async function updateContact(contactData) {
       });
     }
 
+    /*
     const contactoActualizado = await response.json();
     // Transformar si la API devuelve campos con otros nombres
     const contactoFinal = {
@@ -167,8 +185,9 @@ export async function updateContact(contactData) {
       //fechaCumple: contactoActualizado.birthday,
       favorito: contactoActualizado.favorite
     };
+    */
 
-    return contactoFinal;
+    return contactData;
   } catch (error) {
     if (!(error instanceof FetchError)) {
       throw new FetchError({
@@ -207,7 +226,7 @@ export async function fetchContactById(id) {
       actualizado: contactoApi.updatedAt,
       favorito: false
     }
-    return contactoFinal;
+    return enriquecerTelefono(contactoFinal);
 
   } catch (error) {
     if (!(error instanceof FetchError)) {

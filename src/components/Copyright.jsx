@@ -6,7 +6,7 @@ export default function Copyright() {
                 {year} - Erick Verde
             </div>
             <div className="text-text-secondary text-sm">
-                Desarrollado con ❤️ para una mejor gestión de contactos
+                Desarrollado para una mejor gestión de contactos
             </div>
         </>
     );
