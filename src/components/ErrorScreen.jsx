@@ -37,11 +37,11 @@ function ErrorScreen({
 
         {/* Botones */}
         <div className="flex flex-col md:flex-row gap-3 mt-3">
-          <button
+          {/*          <button
             className="px-5 py-2 rounded bg-secondary-red text-white border border-secondary-red transition cursor-pointer"
           >
             Volver al inicio
-          </button>
+          </button>*/}
           <button
             onClick={() => window.location.reload()}
             className="px-5 py-2 rounded border border-secondary-red text-secondary-red transition cursor-pointer"

@@ -130,16 +130,25 @@ export async function deleteContact(id) {
       method: "DELETE"
     });
 
+
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => null);
-      throw new Error(errorBody?.message || `Error ${response.status}`);
+      throw new FetchError({
+        codigo: response.status.toString(),
+        descripcion: erroresHTTP[response.status] || erroresHTTP.default
+      });
     }
 
     console.log("Contacto eliminado exitosamente.");
     return true;
 
-  } catch (error) {
-    console.error("❌ Error al eliminar contacto:", error);
+  }  catch (error) {
+    if (!(error instanceof FetchError)) {
+      throw new FetchError({
+        codigo: "default",
+        descripcion: erroresHTTP.default
+      });
+    }
+
     throw error;
   }
 }
